@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>SimpleSampler</string>
+	<key>CFBundleGetInfoString</key>
+	<string>SimpleSampler v0.4.0 Copyright 2021 Acme Inc</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.Witech.vst3.SimpleSampler</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>SimpleSampler</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.4.0</string>
+	<key>CFBundleSignature</key>
+	<string>jWBp</string>
+	<key>CFBundleVersion</key>
+	<string>0.4.0</string>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.11.0</string>
+</dict>
+</plist>
