@@ -134,6 +134,8 @@
     <ClCompile Include="..\..\iPlug2\IGraphics\IGraphicsEditorDelegate.cpp">
       <Filter>IGraphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\SampleFile.cpp" />
+    <ClCompile Include="..\FileBrowser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../config.h" />
@@ -357,6 +359,7 @@
     <ClInclude Include="..\..\iPlug2\IGraphics\ISender.h">
       <Filter>IGraphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\SampleFile.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="resources">

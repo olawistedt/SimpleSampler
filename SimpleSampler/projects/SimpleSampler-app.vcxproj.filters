@@ -314,5 +314,6 @@
     <Image Include="..\resources\SimpleSampler.ico">
       <Filter>resources</Filter>
     </Image>
+    <Image Include="..\resources\bitmap1.bmp" />
   </ItemGroup>
 </Project>
