@@ -241,8 +241,11 @@ void SimpleSampler::ProcessMidiMsg(const IMidiMsg& msg)
 
 void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
+  Stereo stereo;
+  double* out01 = outputs[0];  double* out02 = outputs[1];
+
   const int nChans = NOutChansConnected();
-  for (int offset = 0; offset < nFrames; offset += nChans)
+  for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
     {
@@ -258,10 +261,14 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
       }
       mMidiQueue.Remove();
     }
+
+    outputs[0][offset] = 0.0;
+    outputs[1][offset] = 0.0;
     for (int i = 0; i < 12; i++)
     {
-      outputs[0][offset] += mSampleFile[i].getStereo().left;
-      outputs[1][offset] += mSampleFile[i].getStereo().right;
+      stereo = mSampleFile[i].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
+      outputs[0][offset] += stereo.left;
+      outputs[1][offset] += stereo.right;
     }
     outputs[0][offset] /= 12.0;
     outputs[1][offset] /= 12.0;
