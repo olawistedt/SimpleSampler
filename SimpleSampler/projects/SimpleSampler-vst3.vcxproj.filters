@@ -439,4 +439,8 @@
       <Filter>config</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resources\bitmap1.bmp" />
+    <Image Include="..\resources\SimpleSampler.ico" />
+  </ItemGroup>
 </Project>

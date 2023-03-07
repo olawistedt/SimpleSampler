@@ -28,7 +28,7 @@
 #define PLUG_HEIGHT 768
 #define PLUG_FPS 60
 #define PLUG_SHARED_RESOURCES 1
-#define PLUG_HOST_RESIZE 1
+#define PLUG_HOST_RESIZE 0
 #define PLUG_MIN_WIDTH 256
 #define PLUG_MIN_HEIGHT 256
 #define PLUG_MAX_WIDTH 8192
@@ -57,4 +57,5 @@
 
 #define ROBOTO_FN "Roboto-Regular.ttf"
 
+#define BACKGROUND_FN   "background.png"
 #define PNGFOLDERBTN_FN "btnFolder.png"

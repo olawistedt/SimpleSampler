@@ -12,11 +12,11 @@ SampleFile::~SampleFile()
 }
 
 // Called by GUI
-bool SampleFile::loadFile(const char* fileName)
+bool SampleFile::loadFile()
 {
-  mFileName = std::string(fileName);
+  assert(mFileName != "");
 
-  SNDFILE* sndFile = sf_open(fileName, SFM_READ, &mSfinfo);
+  SNDFILE* sndFile = sf_open(mFileName.c_str(), SFM_READ, &mSfinfo);
 
   sf_count_t buffSize = mSfinfo.frames * mSfinfo.channels;
 

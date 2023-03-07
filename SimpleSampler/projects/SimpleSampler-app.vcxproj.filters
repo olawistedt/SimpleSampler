@@ -77,6 +77,8 @@
     <ClCompile Include="..\..\iPlug2\IGraphics\Drawing\IGraphicsSkia.cpp">
       <Filter>IGraphics\Drawing</Filter>
     </ClCompile>
+    <ClCompile Include="..\FileBrowser.cpp" />
+    <ClCompile Include="..\SampleFile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\SimpleSampler.h" />
@@ -258,6 +260,8 @@
     <ClInclude Include="..\..\iPlug2\IGraphics\ISender.h">
       <Filter>IGraphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\FileBrowser.h" />
+    <ClInclude Include="..\SampleFile.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="resources">

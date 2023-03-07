@@ -13,7 +13,7 @@ class SampleFile
 public:
   SampleFile();
   ~SampleFile();
-  bool loadFile(const char* fileName);
+  bool loadFile();
   Stereo SampleFile::getStereo();
   sf_count_t mCurrentSample;
   std::string mFileName;

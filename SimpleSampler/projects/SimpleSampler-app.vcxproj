@@ -163,11 +163,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>$(APP_DEFS);$(DEBUG_DEFS);$(EXTRA_DEBUG_DEFS);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.0.31-win64\include;$(APP_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.2.0-win64\include;$(APP_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.0.31-win64\lib\sndfile.lib;$(APP_LIBS);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.2.0-win64\lib\sndfile.lib;$(APP_LIBS);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile />
@@ -203,14 +203,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>$(APP_DEFS);$(RELEASE_DEFS);$(EXTRA_RELEASE_DEFS);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.0.31-win64\include;$(APP_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.2.0-win64\include;$(APP_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(APP_LIBS);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.2.0-win64\lib\sndfile.lib;$(APP_LIBS);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <ResourceCompile>
@@ -317,6 +317,8 @@
     <ClInclude Include="..\..\iPlug2\IPlug\IPlugUtilities.h" />
     <ClInclude Include="..\..\iPlug2\IPlug\IPlug_include_in_plug_hdr.h" />
     <ClInclude Include="..\..\iPlug2\IPlug\IPlug_include_in_plug_src.h" />
+    <ClInclude Include="..\FileBrowser.h" />
+    <ClInclude Include="..\SampleFile.h" />
     <ClInclude Include="..\SimpleSampler.h" />
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>
@@ -360,6 +362,8 @@
     <ClCompile Include="..\..\iPlug2\IPlug\IPlugPluginBase.cpp" />
     <ClCompile Include="..\..\iPlug2\IPlug\IPlugProcessor.cpp" />
     <ClCompile Include="..\..\iPlug2\IPlug\IPlugTimer.cpp" />
+    <ClCompile Include="..\FileBrowser.cpp" />
+    <ClCompile Include="..\SampleFile.cpp" />
     <ClCompile Include="..\SimpleSampler.cpp" />
   </ItemGroup>
   <ItemGroup>

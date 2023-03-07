@@ -168,11 +168,11 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>$(VST3_DEFS);$(DEBUG_DEFS);$(EXTRA_DEBUG_DEFS);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.0.31-win64\include;$(VST3_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.2.0-win64\include;$(VST3_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.0.31-win64\lib\sndfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\libsndfile-1.2.0-win64\lib\sndfile.lib;Propsys.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>
@@ -205,13 +205,13 @@
       <PreprocessorDefinitions>$(VST3_DEFS);$(RELEASE_DEFS);$(EXTRA_RELEASE_DEFS);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.0.31-win64\include;$(VST3_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\libsndfile-1.2.0-win64\include;$(VST3_INC_PATHS);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.0.31-win64\lib\sndfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Propsys.lib;$(ProjectDir)..\libsndfile-1.2.0-win64\lib\sndfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent />
   </ItemDefinitionGroup>
@@ -403,6 +403,10 @@
     <None Include="..\config\SimpleSampler-win.props">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\resources\bitmap1.bmp" />
+    <Image Include="..\resources\SimpleSampler.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

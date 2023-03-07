@@ -15,8 +15,8 @@ enum EParams
 enum ECtrlTags
 {
   kCtrlTagVersionNumber = 0,
-  kCtrlTagSlider,
-  kCtrlTagTitle
+//  kCtrlTagSlider,
+//  kCtrlTagTitle
 };
 
 using namespace iplug;
@@ -28,7 +28,7 @@ public:
   SimpleSampler(const InstanceInfo& info);
 
 #if IPLUG_EDITOR
-  void OnParentWindowResize(int width, int height) override;
+//  void OnParentWindowResize(int width, int height) override;
   bool OnHostRequestingSupportedViewConfiguration(int width, int height) override { return true; }
   bool SerializeState(IByteChunk& chunk) const override;
   int UnserializeState(const IByteChunk& chunk, int startPos) override;

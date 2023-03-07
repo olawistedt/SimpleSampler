@@ -12,19 +12,19 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
 {
   GetParam(kParamGain)->InitDouble("Gain", 85., 0., 100.0, 0.01, "%");
 
-  mSampleFile[0].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[1].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CL\\CL.WAV");
-  mSampleFile[2].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\SD\\SD2550.WAV");
-  mSampleFile[3].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CP\\CP.WAV");
-  mSampleFile[4].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[5].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[6].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[7].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[8].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[9].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[10].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  mSampleFile[11].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV");
-  //  mSampleFile[0].loadFile("C:\\Users\\ola\\OneDrive\\egen musik\\MP3-Mixdowns\\toypiano-piano - drums - arr2.wav");
+  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[1].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CL\\CL.WAV";
+  mSampleFile[2].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\SD\\SD2550.WAV";
+  mSampleFile[3].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CP\\CP.WAV";
+  mSampleFile[4].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[5].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[6].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[7].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[8].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[9].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[10].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  mSampleFile[11].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\MP3-Mixdowns\\toypiano-piano - drums - arr2.wav";
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() {
@@ -36,78 +36,72 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
     // Load Bitmaps
     const IBitmap folderBtnBitmap = pGraphics->LoadBitmap((PNGFOLDERBTN_FN), 2, true);
 
-    const IRECT bounds = pGraphics->GetBounds();
-    const IRECT innerBounds = bounds.GetPadded(-10.f);
-    const IRECT sliderBounds = innerBounds.GetFromLeft(150).GetMidVPadded(100);
-    const IRECT versionBounds = innerBounds.GetFromTRHC(300, 20);
-    const IRECT titleBounds = innerBounds.GetCentredInside(200, 50);
-
-    if (pGraphics->NControls()) {
-      pGraphics->GetBackgroundControl()->SetTargetAndDrawRECTs(bounds);
-      pGraphics->GetControlWithTag(kCtrlTagSlider)->SetTargetAndDrawRECTs(sliderBounds);
-      pGraphics->GetControlWithTag(kCtrlTagTitle)->SetTargetAndDrawRECTs(titleBounds);
-      pGraphics->GetControlWithTag(kCtrlTagVersionNumber)->SetTargetAndDrawRECTs(versionBounds);
-      return;
-    }
-
     pGraphics->SetLayoutOnResize(true);
-    pGraphics->AttachCornerResizer(EUIResizerMode::Size, true);
+    pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
-    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
-    pGraphics->AttachControl(new IVSliderControl(sliderBounds, kParamGain), kCtrlTagSlider);
-    pGraphics->AttachControl(new ITextControl(titleBounds, "SimpleSampler", IText(30)), kCtrlTagTitle);
-    WDL_String buildInfoStr;
-    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
-    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
+//    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
+//    pGraphics->AttachControl(new IVSliderControl(sliderBounds, kParamGain), kCtrlTagSlider);
+//    pGraphics->AttachControl(new ITextControl(titleBounds, "SimpleSampler", IText(30)), kCtrlTagTitle);
+//    WDL_String buildInfoStr;
+//    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
+//    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
+
+    //
+    // Background
+    //
+    pGraphics->LoadBitmap(BACKGROUND_FN, 1, true);
+    pGraphics->AttachBackground(BACKGROUND_FN);
 
     //
     // The browse buttons
+    // 
+    // Note: Can not make a loop for this, because we need to pass in a constant to ChangeSampleFile().
     //
-    pGraphics->AttachControl(new IBButtonControl(50 + 0 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 0 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 0, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 1 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 1 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 1, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 2 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 2 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 2, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 3 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 3 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 3, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 4 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 4 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 4, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 5 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 5 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 5, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 6 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 6 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 6, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 7 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 7 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 7, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 8 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 8 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 8, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 9 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 9 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 9, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 10 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 10 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 10, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 11 * 40, 150, folderBtnBitmap, [&](IControl* pCaller) {
+    pGraphics->AttachControl(new IBButtonControl(50 + 11 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
       BasicFileOpen();
       SimpleSampler::ChangeSampleFile(this, 11, gLastBrowsedFile);
       return; }), kNoTag, "Channels");
@@ -116,13 +110,13 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
 #endif
 }
 
-#if IPLUG_EDITOR
-void SimpleSampler::OnParentWindowResize(int width, int height)
-{
-  if (GetUI())
-    GetUI()->Resize(width, height, 1.f, false);
-}
-#endif
+//#if IPLUG_EDITOR
+//void SimpleSampler::OnParentWindowResize(int width, int height)
+//{
+//  if (GetUI())
+//    GetUI()->Resize(width, height, 1.f, false);
+//}
+//#endif
 
 //
 // Save plugin settings to hard drive. First save is junk.
@@ -224,11 +218,16 @@ void SimpleSampler::ChangeSampleFile(SimpleSampler* simpleSampler, unsigned char
   using convert_type = std::codecvt_utf8<wchar_t>;
   std::wstring_convert<convert_type, wchar_t> converter;
   std::string converted_str = converter.to_bytes(wFileName);
-  simpleSampler->mSampleFile[nr].loadFile(converted_str.c_str());
+  simpleSampler->mSampleFile[nr].mFileName = converted_str.c_str();
+  simpleSampler->mSampleFile[nr].loadFile();
 }
 
 void SimpleSampler::OnReset()
 {
+  for (int i = 0; i < 12; ++i)
+  {
+    mSampleFile[i].loadFile();
+  }
 }
 
 #if IPLUG_DSP
@@ -242,9 +241,8 @@ void SimpleSampler::ProcessMidiMsg(const IMidiMsg& msg)
 void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
   Stereo stereo;
-  double* out01 = outputs[0];  double* out02 = outputs[1];
 
-  const int nChans = NOutChansConnected();
+//  const int nChans = NOutChansConnected();
   for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
