@@ -1,5 +1,6 @@
 #include "SimpleSampler.h"
 #include "IPlug_include_in_plug_src.h"
+#include <filesystem>
 
 #if IPLUG_EDITOR
 #include "IControls.h"
@@ -12,19 +13,19 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
 {
   GetParam(kParamGain)->InitDouble("Gain", 85., 0., 100.0, 0.01, "%");
 
-  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[1].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CL\\CL.WAV";
-  mSampleFile[2].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\SD\\SD2550.WAV";
-  mSampleFile[3].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CP\\CP.WAV";
-  mSampleFile[4].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[5].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[6].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[7].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[8].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[9].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[10].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  mSampleFile[11].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\MP3-Mixdowns\\toypiano-piano - drums - arr2.wav";
+  //mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[1].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CL\\CL.WAV";
+  //mSampleFile[2].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\SD\\SD2550.WAV";
+  //mSampleFile[3].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CP\\CP.WAV";
+  //mSampleFile[4].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[5].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[6].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[7].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[8].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[9].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[10].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  //mSampleFile[11].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
+  ////  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\MP3-Mixdowns\\toypiano-piano - drums - arr2.wav";
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() {
@@ -34,78 +35,51 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
   mLayoutFunc = [&](IGraphics* pGraphics) {
 
     // Load Bitmaps
-    const IBitmap folderBtnBitmap = pGraphics->LoadBitmap((PNGFOLDERBTN_FN), 2, true);
+    IBitmap folderBtnBitmap[12];
+    folderBtnBitmap[0] = pGraphics->LoadBitmap((PNGBTNFOLDERC_FN), 2, true);
+    folderBtnBitmap[1] = pGraphics->LoadBitmap((PNGBTNFOLDERCc_FN), 2, true);
+    folderBtnBitmap[2] = pGraphics->LoadBitmap((PNGBTNFOLDERD_FN), 2, true);
+    folderBtnBitmap[3] = pGraphics->LoadBitmap((PNGBTNFOLDERDd_FN), 2, true);
+    folderBtnBitmap[4] = pGraphics->LoadBitmap((PNGBTNFOLDERE_FN), 2, true);
+    folderBtnBitmap[5] = pGraphics->LoadBitmap((PNGBTNFOLDERF_FN), 2, true);
+    folderBtnBitmap[6] = pGraphics->LoadBitmap((PNGBTNFOLDERFf_FN), 2, true);
+    folderBtnBitmap[7] = pGraphics->LoadBitmap((PNGBTNFOLDERG_FN), 2, true);
+    folderBtnBitmap[8] = pGraphics->LoadBitmap((PNGBTNFOLDERGg_FN), 2, true);
+    folderBtnBitmap[9] = pGraphics->LoadBitmap((PNGBTNFOLDERA_FN), 2, true);
+    folderBtnBitmap[10] = pGraphics->LoadBitmap((PNGBTNFOLDERAa_FN), 2, true);
+    folderBtnBitmap[11] = pGraphics->LoadBitmap((PNGBTNFOLDERB_FN), 2, true);
+
+    const IBitmap upBtnBitmap = pGraphics->LoadBitmap((PNGBTNUP_FN), 2, true);
+    const IBitmap downBtnBitmap = pGraphics->LoadBitmap((PNGBTNDOWN_FN), 2, true);
 
     pGraphics->SetLayoutOnResize(true);
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
-//    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
-//    pGraphics->AttachControl(new IVSliderControl(sliderBounds, kParamGain), kCtrlTagSlider);
-//    pGraphics->AttachControl(new ITextControl(titleBounds, "SimpleSampler", IText(30)), kCtrlTagTitle);
-//    WDL_String buildInfoStr;
-//    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
-//    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
+    //    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
+    //    pGraphics->AttachControl(new IVSliderControl(sliderBounds, kParamGain), kCtrlTagSlider);
+    //    pGraphics->AttachControl(new ITextControl(titleBounds, "SimpleSampler", IText(30)), kCtrlTagTitle);
+    //    WDL_String buildInfoStr;
+    //    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
+    //    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
 
-    //
-    // Background
-    //
+        //
+        // Background
+        //
     pGraphics->LoadBitmap(BACKGROUND_FN, 1, true);
     pGraphics->AttachBackground(BACKGROUND_FN);
 
-    //
     // The browse buttons
-    // 
-    // Note: Can not make a loop for this, because we need to pass in a constant to ChangeSampleFile().
-    //
-    pGraphics->AttachControl(new IBButtonControl(50 + 0 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 0, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 1 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 1, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 2 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 2, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 3 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 3, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 4 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 4, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 5 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 5, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 6 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 6, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 7 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 7, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 8 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 8, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 9 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 9, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 10 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 10, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
-    pGraphics->AttachControl(new IBButtonControl(50 + 11 * 100, 150, folderBtnBitmap, [&](IControl* pCaller) {
-      BasicFileOpen();
-      SimpleSampler::ChangeSampleFile(this, 11, gLastBrowsedFile);
-      return; }), kNoTag, "Channels");
+    for (int i = 0; i < 12; ++i)
+    {
+      pGraphics->AttachControl(new IBSwitchControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i));
+    }
 
+    // The arrow buttons
+    for (int i = 0; i < 12; ++i)
+    {
+      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i));
+      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i));
+    }
   };
 #endif
 }
@@ -163,7 +137,7 @@ bool SimpleSampler::SerializeState(IByteChunk& chunk) const
 }
 
 //
-// From hard disk to BassMatrix.
+// From hard disk to plugin.
 //
 int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
 {
@@ -194,13 +168,13 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
   for (int i = 0; i < 12; i++)
   {
     int j = -1;
-    mSampleFile[i].mFileName = "";
+    mSampleFile[i].mFileName = L"";
     double dChar;
     do
     {
       j++;
       pos = chunk.Get(&dChar, pos);
-      mSampleFile[i].mFileName += dChar;
+      mSampleFile[i].mFileName += static_cast<char>(dChar);
     } while (dChar != 0.0);
   }
 
@@ -213,20 +187,25 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
 }
 #endif // IPLUG_EDITOR
 
-void SimpleSampler::ChangeSampleFile(SimpleSampler* simpleSampler, unsigned char nr, std::wstring wFileName)
+void SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 {
-  using convert_type = std::codecvt_utf8<wchar_t>;
-  std::wstring_convert<convert_type, wchar_t> converter;
-  std::string converted_str = converter.to_bytes(wFileName);
-  simpleSampler->mSampleFile[nr].mFileName = converted_str.c_str();
-  simpleSampler->mSampleFile[nr].loadFile();
+  //using convert_type = std::codecvt_utf8<wchar_t>;
+  //std::wstring_convert<convert_type, wchar_t> converter;
+  //std::string converted_str = converter.to_bytes(wFileName);
+  //simpleSampler->mSampleFile[nr].mFileName = converted_str.c_str();
+
+  mSampleFile[nr].mFileName = wFileName;
+  mSampleFile[nr].loadFile();
 }
 
 void SimpleSampler::OnReset()
 {
   for (int i = 0; i < 12; ++i)
   {
-    mSampleFile[i].loadFile();
+    if (mSampleFile[i].mFileName != L"")
+    {
+      mSampleFile[i].loadFile();
+    }
   }
 }
 
@@ -242,7 +221,7 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
   Stereo stereo;
 
-//  const int nChans = NOutChansConnected();
+  //  const int nChans = NOutChansConnected();
   for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
@@ -275,5 +254,92 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
     outputs[1][offset] *= GetParam(kParamGain)->Value() / 100. * 8;
   }
   mMidiQueue.Flush(nFrames);
+}
+#endif
+
+#if IPLUG_DSP
+void SimpleSampler::OnParamChange(int paramIdx)
+{
+  double value = GetParam(paramIdx)->Value();
+
+  // Browse buttons
+  if (paramIdx >= kParamBrowse && paramIdx < kParamBrowse + 12)
+  {
+    if (value == 0.0)
+    {
+      return;
+    }
+    BasicFileOpen();
+    ChangeSampleFile(paramIdx - kParamBrowse, gLastBrowsedFile);
+  }
+
+  // Arrow buttons
+  if (paramIdx >= kParamUp && paramIdx < kParamUp + 12 || paramIdx >= kParamDown && paramIdx < kParamDown + 12)
+  {
+    if (value == 0.0)
+    {
+      return;
+    }
+    int sampleNr;
+    if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
+    {
+      sampleNr = paramIdx - kParamUp;
+    }
+    else
+    {
+      sampleNr = paramIdx - kParamDown;
+    }
+    std::wstring filePath = mSampleFile[sampleNr].mFileName;
+    std::wstring directory_path = filePath.substr(0, filePath.rfind('\\'));
+    std::wstring upFile = L"";
+    std::wstring previousFile = L"";
+    std::wstring fileFound;
+    bool takeTheNextOne = false;
+
+    if (directory_path != L"")
+    {
+      if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
+      {
+        for (const auto& file : std::filesystem::directory_iterator(directory_path))
+        {
+          std::wstring currentFile(file.path().c_str());
+          if (currentFile == filePath)
+          {
+            if (upFile == L"")
+            {
+              fileFound = currentFile;
+              break;
+            }
+            else
+            {
+              fileFound = upFile;
+            }
+          }
+          upFile = currentFile;
+        }
+      }
+      if (paramIdx >= kParamDown && paramIdx < kParamDown + 12)
+      {
+        for (const auto& file : std::filesystem::directory_iterator(directory_path))
+        {
+          std::wstring currentFile(file.path().c_str());
+          if (takeTheNextOne)
+          {
+            fileFound = currentFile;
+            break;
+          }
+          if (currentFile == filePath)
+          {
+            takeTheNextOne = true;
+          }
+        }
+      }
+      if (fileFound == L"") // No file was found. The file searching for must be the last one.
+      {
+        fileFound = filePath;
+      }
+    }
+    ChangeSampleFile(sampleNr, fileFound); // Is it wise to do this? Change file in DSP thread?
+  }
 }
 #endif

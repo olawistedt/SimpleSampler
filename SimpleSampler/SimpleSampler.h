@@ -9,7 +9,10 @@ const int kNumPresets = 1;
 enum EParams
 {
   kParamGain = 0,
-  kNumParams
+  kParamBrowse,
+  kParamUp = kParamBrowse + 12,
+  kParamDown = kParamUp + 12,
+  kNumParams = kParamDown + 12
 };
 
 enum ECtrlTags
@@ -37,6 +40,7 @@ public:
 #if IPLUG_DSP // http://bit.ly/2S64BDd
   void ProcessMidiMsg(const IMidiMsg& msg) override;
   void OnReset() override;
+  void OnParamChange(int paramIdx) override;
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
 
 protected:
@@ -44,7 +48,7 @@ protected:
 #endif
 
 private:
-  static void ChangeSampleFile(SimpleSampler* simpleSampler, unsigned char nr, std::wstring fileName);
+  void ChangeSampleFile(unsigned char nr, std::wstring fileName);
 
   SampleFile mSampleFile[12];
 };

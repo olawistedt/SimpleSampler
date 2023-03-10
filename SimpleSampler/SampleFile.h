@@ -16,7 +16,7 @@ public:
   bool loadFile();
   Stereo SampleFile::getStereo();
   sf_count_t mCurrentSample;
-  std::string mFileName;
+  std::wstring mFileName;
 private:
   SF_INFO    mSfinfo;
   double*    mBuffer;

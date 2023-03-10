@@ -14,9 +14,17 @@ SampleFile::~SampleFile()
 // Called by GUI
 bool SampleFile::loadFile()
 {
-  assert(mFileName != "");
+  assert(mFileName != L"");
 
-  SNDFILE* sndFile = sf_open(mFileName.c_str(), SFM_READ, &mSfinfo);
+#ifdef _WIN32
+  SNDFILE* sndFile = sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);
+#endif
+
+  if (sndFile == NULL)
+  {
+    mBuffer = NULL;
+    return false;
+  }
 
   sf_count_t buffSize = mSfinfo.frames * mSfinfo.channels;
 
@@ -39,6 +47,8 @@ bool SampleFile::loadFile()
 Stereo SampleFile::getStereo()
 {
   Stereo stereo = { 0.0, 0.0 };
+
+  if (mBuffer == NULL) { return stereo; } // Silent
   if (mCurrentSample >= mSfinfo.frames) { return stereo; } // Silent
   if (mCurrentSample < mSfinfo.frames && mBuffer != NULL)
   {
