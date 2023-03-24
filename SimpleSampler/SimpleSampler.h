@@ -18,8 +18,9 @@ enum EParams
 enum ECtrlTags
 {
   kCtrlTagVersionNumber = 0,
-//  kCtrlTagSlider,
-//  kCtrlTagTitle
+  kCtrlTagBrowse0,
+  kCtrlTagUp0 = kCtrlTagBrowse0 +12,
+  kCtrlTagDown0 = kCtrlTagUp0 + 12
 };
 
 using namespace iplug;

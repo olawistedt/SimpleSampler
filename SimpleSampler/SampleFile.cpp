@@ -14,7 +14,7 @@ SampleFile::~SampleFile()
 // Called by GUI
 bool SampleFile::loadFile()
 {
-  assert(mFileName != L"");
+//  assert(mFileName != L"");
 
 #ifdef _WIN32
   SNDFILE* sndFile = sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);

@@ -8,24 +8,47 @@
 
 extern std::wstring gLastBrowsedFile;
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// The buttons
+////////////////////////////////////////////////////////////////////////////////////////
+class BounceBtnControl : public IBSwitchControl
+{
+public:
+  BounceBtnControl(float x, float y, const IBitmap& bitmap, int paramIdx);
+  void OnMouseDown(float x, float y, const IMouseMod& mod) override;
+  void OnMouseUp(float x, float y, const IMouseMod& mod) override;
+  int mParamIdx;
+};
+
+BounceBtnControl::BounceBtnControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
+  IBSwitchControl(x, y, bitmap, paramIdx)
+{
+  mParamIdx = paramIdx;
+}
+
+void BounceBtnControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+{
+  SetValue(1.0);
+  SetDirty();
+}
+
+void BounceBtnControl::OnMouseUp(float x, float y, const IMouseMod& mod)
+{
+  SetValue(0.0);
+  SetDirty();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+// SimpleSampler
+////////////////////////////////////////////////////////////////////////////////////////
+
 SimpleSampler::SimpleSampler(const InstanceInfo& info)
   : Plugin(info, MakeConfig(kNumParams, kNumPresets))
 {
   GetParam(kParamGain)->InitDouble("Gain", 85., 0., 100.0, 0.01, "%");
-
-  //mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[1].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CL\\CL.WAV";
-  //mSampleFile[2].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\SD\\SD2550.WAV";
-  //mSampleFile[3].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\CP\\CP.WAV";
-  //mSampleFile[4].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[5].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[6].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[7].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[8].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[9].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[10].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  //mSampleFile[11].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\Samples\\Roland TR-808 sampled by Michael Fischer\\BD\\BD0010.WAV";
-  ////  mSampleFile[0].mFileName = "C:\\Users\\ola\\OneDrive\\egen musik\\MP3-Mixdowns\\toypiano-piano - drums - arr2.wav";
 
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() {
@@ -71,14 +94,14 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
     // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new IBSwitchControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i));
+      pGraphics->AttachControl(new BounceBtnControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
     }
-
+    
     // The arrow buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i));
-      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i));
+      pGraphics->AttachControl(new BounceBtnControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
+      pGraphics->AttachControl(new BounceBtnControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
     }
   };
 #endif
@@ -161,7 +184,7 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
     IParam* pParam = GetParam(i);
     double v = 0.0;
     pos = chunk.Get(&v, pos);
-    pParam->Set(v);
+//    pParam->Set(v);
     Trace(TRACELOC, "%d %s %f", i, pParam->GetName(), pParam->Value());
   }
 
@@ -259,17 +282,32 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 
 #if IPLUG_DSP
 void SimpleSampler::OnParamChange(int paramIdx)
+//void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {
+  //if (source == kReset || source == kDelegate)
+  //{
+  //  return;
+  //}
+
   double value = GetParam(paramIdx)->Value();
 
   // Browse buttons
   if (paramIdx >= kParamBrowse && paramIdx < kParamBrowse + 12)
   {
+#ifdef _DEBUG
+    std::wstring mess1 = L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse);
+    OutputDebugStringW(mess1.c_str());
+#endif
+
     if (value == 0.0)
     {
       return;
     }
     BasicFileOpen();
+#ifdef _DEBUG
+    std::wstring mess2 = L"File choosed " + gLastBrowsedFile;
+    OutputDebugStringW(mess2.c_str());
+#endif
     ChangeSampleFile(paramIdx - kParamBrowse, gLastBrowsedFile);
   }
 
@@ -284,10 +322,18 @@ void SimpleSampler::OnParamChange(int paramIdx)
     if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
     {
       sampleNr = paramIdx - kParamUp;
+#ifdef _DEBUG
+      std::wstring mess1 = L"Pressed up nr " + std::to_wstring(sampleNr);
+      OutputDebugStringW(mess1.c_str());
+#endif
     }
     else
     {
       sampleNr = paramIdx - kParamDown;
+#ifdef _DEBUG
+      std::wstring mess2 = L"Pressed down nr " + std::to_wstring(sampleNr);
+      OutputDebugStringW(mess2.c_str());
+#endif
     }
     std::wstring filePath = mSampleFile[sampleNr].mFileName;
     std::wstring directory_path = filePath.substr(0, filePath.rfind('\\'));
@@ -339,6 +385,10 @@ void SimpleSampler::OnParamChange(int paramIdx)
         fileFound = filePath;
       }
     }
+#ifdef _DEBUG
+    std::wstring mess = L"File stepped to " + fileFound;
+    OutputDebugStringW(mess.c_str());
+#endif
     ChangeSampleFile(sampleNr, fileFound); // Is it wise to do this? Change file in DSP thread?
   }
 }
