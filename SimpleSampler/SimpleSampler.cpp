@@ -94,14 +94,14 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
     // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new BounceBtnControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
+      pGraphics->AttachControl(new IBSwitchControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
     }
     
     // The arrow buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new BounceBtnControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
-      pGraphics->AttachControl(new BounceBtnControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
+      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
+      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
     }
   };
 #endif
@@ -197,7 +197,10 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
     {
       j++;
       pos = chunk.Get(&dChar, pos);
-      mSampleFile[i].mFileName += static_cast<char>(dChar);
+      if (dChar != 0.0)
+      {
+        mSampleFile[i].mFileName += static_cast<wchar_t>(dChar);
+      }
     } while (dChar != 0.0);
   }
 
@@ -281,13 +284,13 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 #endif
 
 #if IPLUG_DSP
-void SimpleSampler::OnParamChange(int paramIdx)
-//void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
+//void SimpleSampler::OnParamChange(int paramIdx)
+void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {
-  //if (source == kReset || source == kDelegate)
-  //{
-  //  return;
-  //}
+  if (source != kUI)
+  {
+    return;
+  }
 
   double value = GetParam(paramIdx)->Value();
 
@@ -295,17 +298,17 @@ void SimpleSampler::OnParamChange(int paramIdx)
   if (paramIdx >= kParamBrowse && paramIdx < kParamBrowse + 12)
   {
 #ifdef _DEBUG
-    std::wstring mess1 = L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse);
+    std::wstring mess1 = L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse) + L"\n";
     OutputDebugStringW(mess1.c_str());
 #endif
 
-    if (value == 0.0)
-    {
-      return;
-    }
+    //if (value == 0.0)
+    //{
+    //  return;
+    //}
     BasicFileOpen();
 #ifdef _DEBUG
-    std::wstring mess2 = L"File choosed " + gLastBrowsedFile;
+    std::wstring mess2 = L"File choosed " + gLastBrowsedFile + L"\n";
     OutputDebugStringW(mess2.c_str());
 #endif
     ChangeSampleFile(paramIdx - kParamBrowse, gLastBrowsedFile);
@@ -314,16 +317,16 @@ void SimpleSampler::OnParamChange(int paramIdx)
   // Arrow buttons
   if (paramIdx >= kParamUp && paramIdx < kParamUp + 12 || paramIdx >= kParamDown && paramIdx < kParamDown + 12)
   {
-    if (value == 0.0)
-    {
-      return;
-    }
+    //if (value == 0.0)
+    //{
+    //  return;
+    //}
     int sampleNr;
     if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
     {
       sampleNr = paramIdx - kParamUp;
 #ifdef _DEBUG
-      std::wstring mess1 = L"Pressed up nr " + std::to_wstring(sampleNr);
+      std::wstring mess1 = L"Pressed up nr " + std::to_wstring(sampleNr) + L"\n";
       OutputDebugStringW(mess1.c_str());
 #endif
     }
@@ -331,7 +334,7 @@ void SimpleSampler::OnParamChange(int paramIdx)
     {
       sampleNr = paramIdx - kParamDown;
 #ifdef _DEBUG
-      std::wstring mess2 = L"Pressed down nr " + std::to_wstring(sampleNr);
+      std::wstring mess2 = L"Pressed down nr " + std::to_wstring(sampleNr) + L"\n";
       OutputDebugStringW(mess2.c_str());
 #endif
     }
@@ -386,7 +389,7 @@ void SimpleSampler::OnParamChange(int paramIdx)
       }
     }
 #ifdef _DEBUG
-    std::wstring mess = L"File stepped to " + fileFound;
+    std::wstring mess = L"File stepped to " + fileFound + L" Ola Wistedt \n";
     OutputDebugStringW(mess.c_str());
 #endif
     ChangeSampleFile(sampleNr, fileFound); // Is it wise to do this? Change file in DSP thread?
