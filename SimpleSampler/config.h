@@ -15,7 +15,13 @@
 
 #define SHARED_RESOURCES_SUBPATH "SimpleSampler"
 
-#define PLUG_CHANNEL_IO "0-2" // Writing wrong things here will result that ProcessBlock() don't get called.
+//#define PLUG_CHANNEL_IO "0-2" // Writing wrong things here will result that ProcessBlock() don't get called.
+//#define PLUG_CHANNEL_IO " \
+//0-2 \
+//0-2.2 \
+//0-2.2.2 \
+//0-2.2.2.2"
+#define PLUG_CHANNEL_IO "0-2.2.2.2.2.2.2.2.2.2.2.2"
 
 #define PLUG_LATENCY 0
 #define PLUG_TYPE 1

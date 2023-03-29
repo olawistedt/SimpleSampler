@@ -327,6 +327,35 @@ HRESULT _WriteDataToCustomFile(PCWSTR pszFileName)
 
 /* Common File Dialog Snippets ***************************************************************************************************/
 
+static bool SetDefaultPath(IFileDialog* dialog, std::wstring defaultPathW)
+{
+  if (defaultPathW == L"")
+  {
+    return true;
+  }
+
+  IShellItem* folder;
+  HRESULT result = SHCreateItemFromParsingName(defaultPathW.c_str(), NULL, IID_PPV_ARGS(&folder));
+
+  // Valid non results.
+  if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) || result == HRESULT_FROM_WIN32(ERROR_INVALID_DRIVE))
+  {
+    return true;
+  }
+
+  if (!SUCCEEDED(result))
+  {
+    return false;
+  }
+
+  // Could also call SetDefaultFolder(), but this guarantees defaultPath -- more consistency across API.
+  dialog->SetFolder(folder);
+
+  folder->Release();
+
+  return true;
+}
+
 // This code snippet demonstrates how to work with the common file dialog interface
 HRESULT BasicFileOpen()
 {
@@ -368,6 +397,13 @@ HRESULT BasicFileOpen()
                 hr = pfd->SetDefaultExtension(L"wav");
                 if (SUCCEEDED(hr))
                 {
+                  std::wstring setFolder = gLastBrowsedFile.substr(0, gLastBrowsedFile.rfind('\\'));
+                  if (!SetDefaultPath(pfd, setFolder))
+                  {
+                    hr = -1;
+                    return hr;
+                  }
+
                   // Show the dialog
                   hr = pfd->Show(NULL);
                   if (SUCCEEDED(hr))
@@ -889,5 +925,7 @@ HRESULT WritePropertiesWithoutUsingHandlers()
   }
   return hr;
 }
+
+
 
 #endif

@@ -247,7 +247,7 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 {
   Stereo stereo;
 
-  //  const int nChans = NOutChansConnected();
+  const int nChans = NOutChansConnected();
   for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
@@ -265,19 +265,12 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
       mMidiQueue.Remove();
     }
 
-    outputs[0][offset] = 0.0;
-    outputs[1][offset] = 0.0;
-    for (int i = 0; i < 12; i++)
+    for (int i = 0; i < 24; i += 2)
     {
-      stereo = mSampleFile[i].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
-      outputs[0][offset] += stereo.left;
-      outputs[1][offset] += stereo.right;
+      stereo = mSampleFile[i/2].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
+      outputs[i][offset] = stereo.left;
+      outputs[i+1][offset] = stereo.right;
     }
-    outputs[0][offset] /= 12.0;
-    outputs[1][offset] /= 12.0;
-
-    outputs[0][offset] *= GetParam(kParamGain)->Value() / 100. * 8;
-    outputs[1][offset] *= GetParam(kParamGain)->Value() / 100. * 8;
   }
   mMidiQueue.Flush(nFrames);
 }
@@ -306,6 +299,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     //{
     //  return;
     //}
+    gLastBrowsedFile = mSampleFile[paramIdx - kParamBrowse].mFileName;
     BasicFileOpen();
 #ifdef _DEBUG
     std::wstring mess2 = L"File choosed " + gLastBrowsedFile + L"\n";
@@ -389,7 +383,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
       }
     }
 #ifdef _DEBUG
-    std::wstring mess = L"File stepped to " + fileFound + L" Ola Wistedt \n";
+    std::wstring mess = L"File stepped to " + fileFound + L"\n";
     OutputDebugStringW(mess.c_str());
 #endif
     ChangeSampleFile(sampleNr, fileFound); // Is it wise to do this? Change file in DSP thread?
