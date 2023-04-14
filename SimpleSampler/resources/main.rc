@@ -24,7 +24,7 @@ LANGUAGE LANG_SWEDISH, SUBLANG_SWEDISH
 // Bitmap
 //
 
-IDB_BITMAP1             BITMAP                  "bitmap1.bmp"
+//IDB_BITMAP1             BITMAP                  "bitmap1.bmp"
 
 #endif    // Swedish (Sweden) resources
 /////////////////////////////////////////////////////////////////////////////

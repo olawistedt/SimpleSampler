@@ -1,12 +1,12 @@
 #define PLUG_NAME "SimpleSampler"
 #define PLUG_MFR "Witech"
 #define PLUG_VERSION_HEX 0x00000400
-#define PLUG_VERSION_STR "0.4.0"
+#define PLUG_VERSION_STR "1.0.0"
 #define PLUG_UNIQUE_ID 'jWBp'
-#define PLUG_MFR_ID 'Acme'
-#define PLUG_URL_STR "https://iplug2.github.io"
+#define PLUG_MFR_ID 'Wite'
+#define PLUG_URL_STR "https://witech.se"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2021 Acme Inc"
+#define PLUG_COPYRIGHT_STR "Copyright 2023 Witech"
 #define PLUG_CLASS_NAME SimpleSampler
 
 #define BUNDLE_NAME "SimpleSampler"
@@ -15,14 +15,7 @@
 
 #define SHARED_RESOURCES_SUBPATH "SimpleSampler"
 
-//#define PLUG_CHANNEL_IO "0-2" // Writing wrong things here will result that ProcessBlock() don't get called.
-//#define PLUG_CHANNEL_IO " \
-//0-2 \
-//0-2.2 \
-//0-2.2.2 \
-//0-2.2.2.2"
 #define PLUG_CHANNEL_IO "0-2.2.2.2.2.2.2.2.2.2.2.2"
-
 #define PLUG_LATENCY 0
 #define PLUG_TYPE 1
 #define PLUG_DOES_MIDI_IN 1
