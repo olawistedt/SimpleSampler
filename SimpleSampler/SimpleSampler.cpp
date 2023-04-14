@@ -8,34 +8,59 @@
 
 extern std::wstring gLastBrowsedFile;
 
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
-// The buttons
+// The browse buttons
 ////////////////////////////////////////////////////////////////////////////////////////
-class BounceBtnControl : public IBSwitchControl
+class BounceBtnBrowseControl : public IBSwitchControl
 {
 public:
-  BounceBtnControl(float x, float y, const IBitmap& bitmap, int paramIdx);
+  BounceBtnBrowseControl(float x, float y, const IBitmap& bitmap, int paramIdx);
   void OnMouseDown(float x, float y, const IMouseMod& mod) override;
   void OnMouseUp(float x, float y, const IMouseMod& mod) override;
-  int mParamIdx;
+  //  void OnMouseOut() override;
 };
 
-BounceBtnControl::BounceBtnControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
+BounceBtnBrowseControl::BounceBtnBrowseControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
   IBSwitchControl(x, y, bitmap, paramIdx)
 {
-  mParamIdx = paramIdx;
 }
 
-void BounceBtnControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+void BounceBtnBrowseControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+{
+  SetValue(0.0);
+  SetDirty();
+}
+
+void BounceBtnBrowseControl::OnMouseUp(float x, float y, const IMouseMod& mod)
 {
   SetValue(1.0);
   SetDirty();
 }
 
-void BounceBtnControl::OnMouseUp(float x, float y, const IMouseMod& mod)
+////////////////////////////////////////////////////////////////////////////////////////
+// The arrow buttons
+////////////////////////////////////////////////////////////////////////////////////////
+class BounceBtnArrowControl : public IBSwitchControl
+{
+public:
+  BounceBtnArrowControl(float x, float y, const IBitmap& bitmap, int paramIdx);
+  void OnMouseDown(float x, float y, const IMouseMod& mod) override;
+  void OnMouseUp(float x, float y, const IMouseMod& mod) override;
+  //  void OnMouseOut() override;
+};
+
+BounceBtnArrowControl::BounceBtnArrowControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
+  IBSwitchControl(x, y, bitmap, paramIdx)
+{
+}
+
+void BounceBtnArrowControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+{
+  SetValue(1.0);
+  SetDirty();
+}
+
+void BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod& mod)
 {
   SetValue(0.0);
   SetDirty();
@@ -94,14 +119,14 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
     // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new IBSwitchControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
+      pGraphics->AttachControl(new BounceBtnBrowseControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
     }
-    
+
     // The arrow buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
-      pGraphics->AttachControl(new IBSwitchControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
     }
   };
 #endif
@@ -184,7 +209,7 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
     IParam* pParam = GetParam(i);
     double v = 0.0;
     pos = chunk.Get(&v, pos);
-//    pParam->Set(v);
+    //    pParam->Set(v);
     Trace(TRACELOC, "%d %s %f", i, pParam->GetName(), pParam->Value());
   }
 
@@ -267,9 +292,9 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 
     for (int i = 0; i < 24; i += 2)
     {
-      stereo = mSampleFile[i/2].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
+      stereo = mSampleFile[i / 2].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
       outputs[i][offset] = stereo.left;
-      outputs[i+1][offset] = stereo.right;
+      outputs[i + 1][offset] = stereo.right;
     }
   }
   mMidiQueue.Flush(nFrames);
@@ -290,31 +315,37 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
   // Browse buttons
   if (paramIdx >= kParamBrowse && paramIdx < kParamBrowse + 12)
   {
+    if (value == 0.0)
+    {
+      return;
+    }
+
 #ifdef _DEBUG
     std::wstring mess1 = L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse) + L"\n";
     OutputDebugStringW(mess1.c_str());
 #endif
 
-    //if (value == 0.0)
-    //{
-    //  return;
-    //}
     gLastBrowsedFile = mSampleFile[paramIdx - kParamBrowse].mFileName;
     BasicFileOpen();
 #ifdef _DEBUG
     std::wstring mess2 = L"File choosed " + gLastBrowsedFile + L"\n";
     OutputDebugStringW(mess2.c_str());
 #endif
+
+    // Is it stupid to call GUI here?
+    GetUI()->GetControlWithTag(kCtrlTagBrowse0 + paramIdx - kParamBrowse)->SetValue(0.0);
+    GetUI()->GetControlWithTag(kCtrlTagBrowse0 + paramIdx - kParamBrowse)->SetDirty(true);
+
     ChangeSampleFile(paramIdx - kParamBrowse, gLastBrowsedFile);
   }
 
   // Arrow buttons
   if (paramIdx >= kParamUp && paramIdx < kParamUp + 12 || paramIdx >= kParamDown && paramIdx < kParamDown + 12)
   {
-    //if (value == 0.0)
-    //{
-    //  return;
-    //}
+    if (value == 0.0)
+    {
+      return;
+    }
     int sampleNr;
     if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
     {
