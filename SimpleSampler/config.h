@@ -3,8 +3,8 @@
 #define PLUG_VERSION_HEX 0x00000400
 #define PLUG_VERSION_STR "1.0.0"
 #define PLUG_UNIQUE_ID 'jWBp'
-#define PLUG_MFR_ID 'Wite'
-#define PLUG_URL_STR "https://witech.se"
+#define PLUG_MFR_ID 'Acme'
+#define PLUG_URL_STR "https://iplug2.github.io"
 #define PLUG_EMAIL_STR "spam@me.com"
 #define PLUG_COPYRIGHT_STR "Copyright 2023 Witech"
 #define PLUG_CLASS_NAME SimpleSampler
