@@ -14,24 +14,29 @@ extern std::wstring gLastBrowsedFile;
 class BounceBtnBrowseControl : public IBSwitchControl
 {
 public:
-  BounceBtnBrowseControl(float x, float y, const IBitmap& bitmap, int paramIdx);
-  void OnMouseDown(float x, float y, const IMouseMod& mod) override;
-  void OnMouseUp(float x, float y, const IMouseMod& mod) override;
+  BounceBtnBrowseControl(float x, float y, const IBitmap &bitmap, int paramIdx);
+  void OnMouseDown(float x, float y, const IMouseMod &mod) override;
+  void OnMouseUp(float x, float y, const IMouseMod &mod) override;
   //  void OnMouseOut() override;
 };
 
-BounceBtnBrowseControl::BounceBtnBrowseControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
+BounceBtnBrowseControl::BounceBtnBrowseControl(float x,
+                                               float y,
+                                               const IBitmap &bitmap,
+                                               int paramIdx) :
   IBSwitchControl(x, y, bitmap, paramIdx)
 {
 }
 
-void BounceBtnBrowseControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+void
+BounceBtnBrowseControl::OnMouseDown(float x, float y, const IMouseMod &mod)
 {
   SetValue(0.0);
   SetDirty();
 }
 
-void BounceBtnBrowseControl::OnMouseUp(float x, float y, const IMouseMod& mod)
+void
+BounceBtnBrowseControl::OnMouseUp(float x, float y, const IMouseMod &mod)
 {
   SetValue(1.0);
   SetDirty();
@@ -43,24 +48,29 @@ void BounceBtnBrowseControl::OnMouseUp(float x, float y, const IMouseMod& mod)
 class BounceBtnArrowControl : public IBSwitchControl
 {
 public:
-  BounceBtnArrowControl(float x, float y, const IBitmap& bitmap, int paramIdx);
-  void OnMouseDown(float x, float y, const IMouseMod& mod) override;
-  void OnMouseUp(float x, float y, const IMouseMod& mod) override;
+  BounceBtnArrowControl(float x, float y, const IBitmap &bitmap, int paramIdx);
+  void OnMouseDown(float x, float y, const IMouseMod &mod) override;
+  void OnMouseUp(float x, float y, const IMouseMod &mod) override;
   //  void OnMouseOut() override;
 };
 
-BounceBtnArrowControl::BounceBtnArrowControl(float x, float y, const IBitmap& bitmap, int paramIdx) :
+BounceBtnArrowControl::BounceBtnArrowControl(float x,
+                                             float y,
+                                             const IBitmap &bitmap,
+                                             int paramIdx) :
   IBSwitchControl(x, y, bitmap, paramIdx)
 {
 }
 
-void BounceBtnArrowControl::OnMouseDown(float x, float y, const IMouseMod& mod)
+void
+BounceBtnArrowControl::OnMouseDown(float x, float y, const IMouseMod &mod)
 {
   SetValue(1.0);
   SetDirty();
 }
 
-void BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod& mod)
+void
+BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod &mod)
 {
   SetValue(0.0);
   SetDirty();
@@ -70,18 +80,16 @@ void BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod& mod)
 // SimpleSampler
 ////////////////////////////////////////////////////////////////////////////////////////
 
-SimpleSampler::SimpleSampler(const InstanceInfo& info)
-  : Plugin(info, MakeConfig(kNumParams, kNumPresets))
+SimpleSampler::SimpleSampler(const InstanceInfo &info) :
+  Plugin(info, MakeConfig(kNumParams, kNumPresets))
 {
   GetParam(kParamGain)->InitDouble("Gain", 85., 0., 100.0, 0.01, "%");
 
-#if IPLUG_EDITOR // http://bit.ly/2S64BDd
-  mMakeGraphicsFunc = [&]() {
-    return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS);
-  };
+#if IPLUG_EDITOR  // http://bit.ly/2S64BDd
+  mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS); };
 
-  mLayoutFunc = [&](IGraphics* pGraphics) {
-
+  mLayoutFunc = [&](IGraphics *pGraphics)
+  {
     // Load Bitmaps
     IBitmap folderBtnBitmap[12];
     folderBtnBitmap[0] = pGraphics->LoadBitmap((PNGBTNFOLDERC_FN), 2, true);
@@ -110,23 +118,33 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
     //    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
     //    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
 
-        //
-        // Background
-        //
+    //
+    // Background
+    //
     pGraphics->LoadBitmap(BACKGROUND_FN, 1, true);
     pGraphics->AttachBackground(BACKGROUND_FN);
 
     // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new BounceBtnBrowseControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i), kCtrlTagBrowse0 + i);
+      pGraphics->AttachControl(
+          new BounceBtnBrowseControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i),
+          kCtrlTagBrowse0 + i);
     }
 
     // The arrow buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((upBtnBitmap.W() / 2) + 48), 230, upBtnBitmap, kParamUp + i), kCtrlTagUp0 + i);
-      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((downBtnBitmap.W() / 2) + 48), 310, downBtnBitmap, kParamDown + i), kCtrlTagDown0 + i);
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((upBtnBitmap.W() / 2) + 48),
+                                                         230,
+                                                         upBtnBitmap,
+                                                         kParamUp + i),
+                               kCtrlTagUp0 + i);
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((downBtnBitmap.W() / 2) + 48),
+                                                         310,
+                                                         downBtnBitmap,
+                                                         kParamDown + i),
+                               kCtrlTagDown0 + i);
     }
   };
 #endif
@@ -144,7 +162,8 @@ SimpleSampler::SimpleSampler(const InstanceInfo& info)
 // Save plugin settings to hard drive. First save is junk.
 //
 #if IPLUG_EDITOR
-bool SimpleSampler::SerializeState(IByteChunk& chunk) const
+bool
+SimpleSampler::SerializeState(IByteChunk &chunk) const
 {
 #ifdef _DEBUG
   OutputDebugString("SerializeState() called\n");
@@ -152,7 +171,7 @@ bool SimpleSampler::SerializeState(IByteChunk& chunk) const
 
   TRACE
 
-    bool savedOK = true;
+  bool savedOK = true;
 
   // Set version of the preset format.
   double version = 1.0;
@@ -162,7 +181,7 @@ bool SimpleSampler::SerializeState(IByteChunk& chunk) const
   int n = NParams();
   for (int i = kParamGain; i < n && savedOK; ++i)
   {
-    const IParam* pParam = GetParam(i);
+    const IParam *pParam = GetParam(i);
     Trace(TRACELOC, " %s %d %f", pParam->GetName(), i, pParam->Value());
     double v = pParam->Value();
     savedOK &= (chunk.Put(&v) > 0);
@@ -187,7 +206,8 @@ bool SimpleSampler::SerializeState(IByteChunk& chunk) const
 //
 // From hard disk to plugin.
 //
-int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
+int
+SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 {
 #ifdef _DEBUG
   OutputDebugString("UnserializeState() called\n");
@@ -195,9 +215,9 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
 
   TRACE
 
-    ENTER_PARAMS_MUTEX
+  ENTER_PARAMS_MUTEX
 
-    int n = NParams(), pos = startPos;
+  int n = NParams(), pos = startPos;
 
   // Check version for the preset format
   double version;
@@ -206,7 +226,7 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
 
   for (int i = kParamGain; i < n && pos >= 0; ++i)
   {
-    IParam* pParam = GetParam(i);
+    IParam *pParam = GetParam(i);
     double v = 0.0;
     pos = chunk.Get(&v, pos);
     //    pParam->Set(v);
@@ -234,11 +254,12 @@ int SimpleSampler::UnserializeState(const IByteChunk& chunk, int startPos)
 
   LEAVE_PARAMS_MUTEX
 
-    return pos;
+  return pos;
 }
-#endif // IPLUG_EDITOR
+#endif  // IPLUG_EDITOR
 
-void SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
+void
+SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 {
   //using convert_type = std::codecvt_utf8<wchar_t>;
   //std::wstring_convert<convert_type, wchar_t> converter;
@@ -247,28 +268,39 @@ void SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 
   mSampleFile[nr].mFileName = wFileName;
   mSampleFile[nr].loadFile();
+  if (nr == 11)
+  {
+    mSampleFile[nr].reverse();
+  }
 }
 
-void SimpleSampler::OnReset()
+void
+SimpleSampler::OnReset()
 {
   for (int i = 0; i < 12; ++i)
   {
     if (mSampleFile[i].mFileName != L"")
     {
       mSampleFile[i].loadFile();
+      if (i == 11)
+      {
+        mSampleFile[i].reverse();
+      }
     }
   }
 }
 
 #if IPLUG_DSP
 
-void SimpleSampler::ProcessMidiMsg(const IMidiMsg& msg)
+void
+SimpleSampler::ProcessMidiMsg(const IMidiMsg &msg)
 {
   TRACE;
-  mMidiQueue.Add(msg); // Take care of MIDI events in ProcessBlock()
+  mMidiQueue.Add(msg);  // Take care of MIDI events in ProcessBlock()
 }
 
-void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
+void
+SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
 {
   Stereo stereo;
 
@@ -278,13 +310,15 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
     while (!mMidiQueue.Empty())
     {
       IMidiMsg msg = mMidiQueue.Peek();
-      if (msg.mOffset > offset) break;
+      if (msg.mOffset > offset)
+        break;
 
       if (msg.StatusMsg() == IMidiMsg::kNoteOn)
       {
         if (msg.NoteNumber() >= 36 && msg.NoteNumber() <= 47)
         {
           mSampleFile[msg.NoteNumber() - 36].mCurrentSample = 0;
+          mSampleFile[msg.NoteNumber() - 36].mVelocity = msg.Velocity();
         }
       }
       mMidiQueue.Remove();
@@ -292,7 +326,9 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 
     for (int i = 0; i < 24; i += 2)
     {
-      stereo = mSampleFile[i / 2].getStereo(); // Note: Call getStereo() only one time, than use .left and .right to get the values.
+      stereo =
+          mSampleFile[i / 2]
+              .getStereo();  // Note: Call getStereo() only one time, than use .left and .right to get the values.
       outputs[i][offset] = stereo.left;
       outputs[i + 1][offset] = stereo.right;
     }
@@ -303,7 +339,8 @@ void SimpleSampler::ProcessBlock(sample** inputs, sample** outputs, int nFrames)
 
 #if IPLUG_DSP
 //void SimpleSampler::OnParamChange(int paramIdx)
-void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
+void
+SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {
   if (source != kUI)
   {
@@ -321,7 +358,8 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     }
 
 #ifdef _DEBUG
-    std::wstring mess1 = L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse) + L"\n";
+    std::wstring mess1 =
+        L"Pressed browse file nr " + std::to_wstring(paramIdx - kParamBrowse) + L"\n";
     OutputDebugStringW(mess1.c_str());
 #endif
 
@@ -340,7 +378,8 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
   }
 
   // Arrow buttons
-  if (paramIdx >= kParamUp && paramIdx < kParamUp + 12 || paramIdx >= kParamDown && paramIdx < kParamDown + 12)
+  if (paramIdx >= kParamUp && paramIdx < kParamUp + 12 ||
+      paramIdx >= kParamDown && paramIdx < kParamDown + 12)
   {
     if (value == 0.0)
     {
@@ -374,7 +413,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     {
       if (paramIdx >= kParamUp && paramIdx < kParamUp + 12)
       {
-        for (const auto& file : std::filesystem::directory_iterator(directory_path))
+        for (const auto &file : std::filesystem::directory_iterator(directory_path))
         {
           std::wstring currentFile(file.path().c_str());
           if (currentFile == filePath)
@@ -394,7 +433,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
       }
       if (paramIdx >= kParamDown && paramIdx < kParamDown + 12)
       {
-        for (const auto& file : std::filesystem::directory_iterator(directory_path))
+        for (const auto &file : std::filesystem::directory_iterator(directory_path))
         {
           std::wstring currentFile(file.path().c_str());
           if (takeTheNextOne)
@@ -408,7 +447,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
           }
         }
       }
-      if (fileFound == L"") // No file was found. The file searching for must be the last one.
+      if (fileFound == L"")  // No file was found. The file searching for must be the last one.
       {
         fileFound = filePath;
       }
@@ -417,7 +456,7 @@ void SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     std::wstring mess = L"File stepped to " + fileFound + L"\n";
     OutputDebugStringW(mess.c_str());
 #endif
-    ChangeSampleFile(sampleNr, fileFound); // Is it wise to do this? Change file in DSP thread?
+    ChangeSampleFile(sampleNr, fileFound);  // Is it wise to do this? Change file in DSP thread?
   }
 }
 #endif

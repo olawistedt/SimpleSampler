@@ -5,29 +5,33 @@
 #include <windows.h>
 extern HINSTANCE ghInst;
 
-typedef SNDFILE* (*LPFN_sf_wchar_open)       (const wchar_t*, int, SF_INFO*);
-typedef int		     (*LPFN_sf_close)		  (SNDFILE*);
-typedef sf_count_t(*LPFN_sf_read_double) (SNDFILE*, double*, sf_count_t);
+typedef SNDFILE *(*LPFN_sf_wchar_open)(const wchar_t *, int, SF_INFO *);
+typedef int (*LPFN_sf_close)(SNDFILE *);
+typedef sf_count_t (*LPFN_sf_read_double)(SNDFILE *, double *, sf_count_t);
 
-static LPFN_sf_wchar_open  lpfn_sf_wchar_open;    // Function pointer
-static LPFN_sf_close       lpfn_sf_close;
+static LPFN_sf_wchar_open lpfn_sf_wchar_open;  // Function pointer
+static LPFN_sf_close lpfn_sf_close;
 static LPFN_sf_read_double lpfn_sf_read_double;
 
 #endif
 
-SampleFile::SampleFile()
-  : mBuffer(NULL), mSize(0), mSfinfo({ 0, 0, 0, 0, 0, 0 }), mCurrentSample(0)
+SampleFile::SampleFile() : mBuffer(NULL), mSize(0), mSfinfo({ 0, 0, 0, 0, 0, 0 }), mCurrentSample(0)
 {
   LoadDllFunctions();
 }
 
 SampleFile::~SampleFile()
 {
-  if (mBuffer != NULL) { delete mBuffer; mBuffer = NULL; }
+  if (mBuffer != NULL)
+  {
+    delete mBuffer;
+    mBuffer = NULL;
+  }
 }
 
 #ifdef _WIN32
-void SampleFile::LoadDllFunctions()
+void
+SampleFile::LoadDllFunctions()
 {
   CHAR buffer[2048];
   GetModuleFileName(ghInst, buffer, sizeof(buffer));
@@ -35,21 +39,20 @@ void SampleFile::LoadDllFunctions()
   std::string pluginDir(buffer);
   std::string sndFileDll = pluginDir + "\\sndfile.dll";
 
-  HINSTANCE hDLL;              // Handle to DLL
+  HINSTANCE hDLL;  // Handle to DLL
 
   hDLL = LoadLibrary(sndFileDll.c_str());
 
   if (hDLL == NULL)
   {
     std::string sMess = "The sndfile.dll was not found. No samples can be loaded.\n"
-      "Close down SimpleSampler and place the "
-      "sndfile.dll in the ";
+                        "Close down SimpleSampler and place the "
+                        "sndfile.dll in the ";
     sMess += pluginDir;
     sMess += " directory.\n"
-      "Then restart your application.";
+             "Then restart your application.";
 
-    MessageBox(NULL, sMess.c_str(),
-      "Loading sndfile.dll Error", MB_OK);
+    MessageBox(NULL, sMess.c_str(), "Loading sndfile.dll Error", MB_OK);
     exit(1);
   }
 
@@ -57,11 +60,12 @@ void SampleFile::LoadDllFunctions()
   lpfn_sf_close = (LPFN_sf_close)GetProcAddress(hDLL, "sf_close");
   lpfn_sf_read_double = (LPFN_sf_read_double)GetProcAddress(hDLL, "sf_read_double");
 
-  if (!lpfn_sf_wchar_open ||
-    !lpfn_sf_close ||
-    !lpfn_sf_read_double)
+  if (!lpfn_sf_wchar_open || !lpfn_sf_close || !lpfn_sf_read_double)
   {
-    MessageBox(NULL, "The version of the sndfile.dll is probably wrong.", "Loading sndfile.dll Error", MB_OK);
+    MessageBox(NULL,
+               "The version of the sndfile.dll is probably wrong.",
+               "Loading sndfile.dll Error",
+               MB_OK);
     FreeLibrary(hDLL);
     exit(1);
   }
@@ -69,12 +73,13 @@ void SampleFile::LoadDllFunctions()
 #endif
 
 // Called by GUI
-bool SampleFile::loadFile()
+bool
+SampleFile::loadFile()
 {
   //  assert(mFileName != L"");
 
 #ifdef _WIN32
-  SNDFILE* sndFile = lpfn_sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);
+  SNDFILE *sndFile = lpfn_sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);
 #endif
 
   if (sndFile == NULL)
@@ -85,9 +90,12 @@ bool SampleFile::loadFile()
 
   sf_count_t buffSize = mSfinfo.frames * mSfinfo.channels;
 
-  assert(mSfinfo.channels == 1 || mSfinfo.channels == 2); // Only mono or stereo files will work
+  assert(mSfinfo.channels == 1 || mSfinfo.channels == 2);  // Only mono or stereo files will work
 
-  if (mBuffer) { delete mBuffer; }
+  if (mBuffer)
+  {
+    delete mBuffer;
+  }
 
   mBuffer = new double[buffSize];
 
@@ -100,25 +108,66 @@ bool SampleFile::loadFile()
   return true;
 }
 
+void
+SampleFile::reverse()
+{
+  if (mBuffer == NULL)
+  {
+    return;
+  }
+  double *tmpBuffer = new double[mSfinfo.frames];
+  if (mSfinfo.channels == 2)  // Is stereo
+  {
+    for (int i = 0; i < mSfinfo.frames; i += 2)
+    {
+      tmpBuffer[i] = mBuffer[mSfinfo.frames - i - 1];
+      tmpBuffer[i + 1] = mBuffer[mSfinfo.frames - i];
+    }
+    for (int i = 0; i < mSfinfo.frames; i += 2)
+    {
+      mBuffer[i] = tmpBuffer[i];
+      mBuffer[i + 1] = tmpBuffer[i + 1];
+    }
+  }
+  else  // Mono
+  {
+    for (int i = 0; i < mSfinfo.frames; i += 1)
+    {
+      tmpBuffer[i] = mBuffer[mSfinfo.frames - i];
+    }
+    for (int i = 0; i < mSfinfo.frames; i += 1)
+    {
+      mBuffer[i] = tmpBuffer[i];
+    }
+  }
+  delete tmpBuffer;
+}
 // Called by DSP
-Stereo SampleFile::getStereo()
+Stereo
+SampleFile::getStereo()
 {
   Stereo stereo = { 0.0, 0.0 };
 
-  if (mBuffer == NULL) { return stereo; } // Silent
-  if (mCurrentSample >= mSfinfo.frames) { return stereo; } // Silent
+  if (mBuffer == NULL)
+  {
+    return stereo;
+  }  // Silent
+  if (mCurrentSample >= mSfinfo.frames)
+  {
+    return stereo;
+  }  // Silent
   if (mCurrentSample < mSfinfo.frames && mBuffer != NULL)
   {
-    if (mSfinfo.channels == 2) // Is stereo
+    if (mSfinfo.channels == 2)  // Is stereo
     {
-      stereo.left = mBuffer[mCurrentSample * 2]; // * m_fLeftVolume;
-      stereo.right = mBuffer[mCurrentSample * 2 + 1]; // *m_fRightVolume;
+      stereo.left = mBuffer[mCurrentSample * 2] * mVelocity / 127.0;       // * m_fLeftVolume;
+      stereo.right = mBuffer[mCurrentSample * 2 + 1] * mVelocity / 127.0;  // *m_fRightVolume;
     }
-    else // Is mono
+    else  // Is mono
     {
-      assert(mSfinfo.channels == 1); // Only mono files will work
-      stereo.left = mBuffer[mCurrentSample]; // * m_fLeftVolume;
-      stereo.right = mBuffer[mCurrentSample]; // *m_fRightVolume;
+      assert(mSfinfo.channels == 1);           // Only mono files will work
+      stereo.left = mBuffer[mCurrentSample] * mVelocity / 127.0;  // * m_fLeftVolume;
+      stereo.right = mBuffer[mCurrentSample] * mVelocity / 127.0;  // *m_fRightVolume;
     }
     mCurrentSample++;
   }

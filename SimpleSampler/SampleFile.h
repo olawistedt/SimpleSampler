@@ -14,8 +14,10 @@ public:
   SampleFile();
   ~SampleFile();
   bool loadFile();
+  void reverse();
   Stereo SampleFile::getStereo();
   sf_count_t mCurrentSample;
+  float mVelocity;
   std::wstring mFileName;
 private:
 #ifdef _WIN32
