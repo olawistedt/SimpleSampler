@@ -10,33 +10,32 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //
 
-#include <windows.h>      // For common windows data types and function headers
+#include <windows.h>  // For common windows data types and function headers
 #define STRICT_TYPED_ITEMIDS
 #include <shlobj.h>
-#include <objbase.h>      // For COM headers
-#include <shobjidl.h>     // for IFileDialogEvents and IFileDialogControlEvents
+#include <objbase.h>   // For COM headers
+#include <shobjidl.h>  // for IFileDialogEvents and IFileDialogControlEvents
 #include <shlwapi.h>
-#include <knownfolders.h> // for KnownFolder APIs/datatypes/function headers
-#include <propvarutil.h>  // for PROPVAR-related functions
-#include <propkey.h>      // for the Property key APIs/datatypes
-#include <propidl.h>      // for the Property System APIs
-#include <strsafe.h>      // for StringCchPrintfW
-#include <shtypes.h>      // for COMDLG_FILTERSPEC
+#include <knownfolders.h>  // for KnownFolder APIs/datatypes/function headers
+#include <propvarutil.h>   // for PROPVAR-related functions
+#include <propkey.h>       // for the Property key APIs/datatypes
+#include <propidl.h>       // for the Property System APIs
+#include <strsafe.h>       // for StringCchPrintfW
+#include <shtypes.h>       // for COMDLG_FILTERSPEC
 #include <new>
 
 #include <string>
 std::wstring gLastBrowsedFile = L"";
 
-#pragma comment(linker, "\"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#pragma comment( \
+    linker,      \
+    "\"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-const COMDLG_FILTERSPEC c_rgSaveTypes[] =
-{
-    {L"Sound (*.wav)",               L"*.wav"},
-    {L"Word Document (*.doc)",       L"*.doc"},
-    {L"Web Page (*.htm; *.html)",    L"*.htm;*.html"},
-    {L"Text Document (*.txt)",       L"*.txt"},
-    {L"All Documents (*.*)",         L"*.*"}
-};
+const COMDLG_FILTERSPEC c_rgSaveTypes[] = { { L"Sound (*.*)", L"*.*" },
+                                            { L"Word Document (*.doc)", L"*.doc" },
+                                            { L"Web Page (*.htm; *.html)", L"*.htm;*.html" },
+                                            { L"Text Document (*.txt)", L"*.txt" },
+                                            { L"All Documents (*.*)", L"*.*" } };
 
 // Indices of file types
 #define INDEX_WORDDOC 1
@@ -44,41 +43,40 @@ const COMDLG_FILTERSPEC c_rgSaveTypes[] =
 #define INDEX_TEXTDOC 3
 
 // Controls
-#define CONTROL_GROUP           2000
+#define CONTROL_GROUP 2000
 #define CONTROL_RADIOBUTTONLIST 2
-#define CONTROL_RADIOBUTTON1    1
-#define CONTROL_RADIOBUTTON2    2       // It is OK for this to have the same ID as CONTROL_RADIOBUTTONLIST,
-                                        // because it is a child control under CONTROL_RADIOBUTTONLIST
+#define CONTROL_RADIOBUTTON1 1
+#define CONTROL_RADIOBUTTON2                                               \
+  2   // It is OK for this to have the same ID as CONTROL_RADIOBUTTONLIST, \
+      // because it is a child control under CONTROL_RADIOBUTTONLIST
 
 // IDs for the Task Dialog Buttons
-#define IDC_BASICFILEOPEN                       100
-#define IDC_ADDITEMSTOCUSTOMPLACES              101
-#define IDC_ADDCUSTOMCONTROLS                   102
-#define IDC_SETDEFAULTVALUESFORPROPERTIES       103
-#define IDC_WRITEPROPERTIESUSINGHANDLERS        104
+#define IDC_BASICFILEOPEN 100
+#define IDC_ADDITEMSTOCUSTOMPLACES 101
+#define IDC_ADDCUSTOMCONTROLS 102
+#define IDC_SETDEFAULTVALUESFORPROPERTIES 103
+#define IDC_WRITEPROPERTIESUSINGHANDLERS 104
 #define IDC_WRITEPROPERTIESWITHOUTUSINGHANDLERS 105
 
 /* File Dialog Event Handler *****************************************************************************************************/
 
-class CDialogEventHandler : public IFileDialogEvents,
-  public IFileDialogControlEvents
+class CDialogEventHandler
+  : public IFileDialogEvents
+  , public IFileDialogControlEvents
 {
 public:
   // IUnknown methods
-  IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv)
+  IFACEMETHODIMP QueryInterface(REFIID riid, void **ppv)
   {
     static const QITAB qit[] = {
-        QITABENT(CDialogEventHandler, IFileDialogEvents),
-        QITABENT(CDialogEventHandler, IFileDialogControlEvents),
-        { 0 },
+      QITABENT(CDialogEventHandler, IFileDialogEvents),
+      QITABENT(CDialogEventHandler, IFileDialogControlEvents),
+      { 0 },
     };
     return QISearch(this, qit, riid, ppv);
   }
 
-  IFACEMETHODIMP_(ULONG) AddRef()
-  {
-    return InterlockedIncrement(&_cRef);
-  }
+  IFACEMETHODIMP_(ULONG) AddRef() { return InterlockedIncrement(&_cRef); }
 
   IFACEMETHODIMP_(ULONG) Release()
   {
@@ -89,76 +87,84 @@ public:
   }
 
   // IFileDialogEvents methods
-  IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; };
-  IFACEMETHODIMP OnFolderChange(IFileDialog*) { return S_OK; };
-  IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return S_OK; };
-  IFACEMETHODIMP OnHelp(IFileDialog*) { return S_OK; };
-  IFACEMETHODIMP OnSelectionChange(IFileDialog*) { return S_OK; };
-  IFACEMETHODIMP OnShareViolation(IFileDialog*, IShellItem*, FDE_SHAREVIOLATION_RESPONSE*) { return S_OK; };
-  IFACEMETHODIMP OnTypeChange(IFileDialog* pfd);
-  IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return S_OK; };
+  IFACEMETHODIMP OnFileOk(IFileDialog *) { return S_OK; };
+  IFACEMETHODIMP OnFolderChange(IFileDialog *) { return S_OK; };
+  IFACEMETHODIMP OnFolderChanging(IFileDialog *, IShellItem *) { return S_OK; };
+  IFACEMETHODIMP OnHelp(IFileDialog *) { return S_OK; };
+  IFACEMETHODIMP OnSelectionChange(IFileDialog *) { return S_OK; };
+  IFACEMETHODIMP OnShareViolation(IFileDialog *, IShellItem *, FDE_SHAREVIOLATION_RESPONSE *)
+  {
+    return S_OK;
+  };
+  IFACEMETHODIMP OnTypeChange(IFileDialog *pfd);
+  IFACEMETHODIMP OnOverwrite(IFileDialog *, IShellItem *, FDE_OVERWRITE_RESPONSE *)
+  {
+    return S_OK;
+  };
 
   // IFileDialogControlEvents methods
-  IFACEMETHODIMP OnItemSelected(IFileDialogCustomize* pfdc, DWORD dwIDCtl, DWORD dwIDItem);
-  IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize*, DWORD) { return S_OK; };
-  IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize*, DWORD, BOOL) { return S_OK; };
-  IFACEMETHODIMP OnControlActivating(IFileDialogCustomize*, DWORD) { return S_OK; };
+  IFACEMETHODIMP OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem);
+  IFACEMETHODIMP OnButtonClicked(IFileDialogCustomize *, DWORD) { return S_OK; };
+  IFACEMETHODIMP OnCheckButtonToggled(IFileDialogCustomize *, DWORD, BOOL) { return S_OK; };
+  IFACEMETHODIMP OnControlActivating(IFileDialogCustomize *, DWORD) { return S_OK; };
 
-  CDialogEventHandler() : _cRef(1) { };
+  CDialogEventHandler() : _cRef(1){};
+
 private:
-  ~CDialogEventHandler() { };
+  ~CDialogEventHandler(){};
   long _cRef;
 };
 
 // IFileDialogEvents methods
 // This method gets called when the file-type is changed (combo-box selection changes).
 // For sample sake, let's react to this event by changing the properties show.
-HRESULT CDialogEventHandler::OnTypeChange(IFileDialog* pfd)
+HRESULT
+CDialogEventHandler::OnTypeChange(IFileDialog *pfd)
 {
-  IFileSaveDialog* pfsd;
+  IFileSaveDialog *pfsd;
   HRESULT hr = pfd->QueryInterface(&pfsd);
   if (SUCCEEDED(hr))
   {
     UINT uIndex;
-    hr = pfsd->GetFileTypeIndex(&uIndex);   // index of current file-type
+    hr = pfsd->GetFileTypeIndex(&uIndex);  // index of current file-type
     if (SUCCEEDED(hr))
     {
-      IPropertyDescriptionList* pdl = NULL;
+      IPropertyDescriptionList *pdl = NULL;
 
       switch (uIndex)
       {
-      case INDEX_WORDDOC:
-        // When .doc is selected, let's ask for some arbitrary property, say Title.
-        hr = PSGetPropertyDescriptionListFromString(L"prop:System.Title", IID_PPV_ARGS(&pdl));
-        if (SUCCEEDED(hr))
-        {
-          // FALSE as second param == do not show default properties.
-          hr = pfsd->SetCollectedProperties(pdl, FALSE);
-          pdl->Release();
-        }
-        break;
+        case INDEX_WORDDOC:
+          // When .doc is selected, let's ask for some arbitrary property, say Title.
+          hr = PSGetPropertyDescriptionListFromString(L"prop:System.Title", IID_PPV_ARGS(&pdl));
+          if (SUCCEEDED(hr))
+          {
+            // FALSE as second param == do not show default properties.
+            hr = pfsd->SetCollectedProperties(pdl, FALSE);
+            pdl->Release();
+          }
+          break;
 
-      case INDEX_WEBPAGE:
-        // When .html is selected, let's ask for some other arbitrary property, say Keywords.
-        hr = PSGetPropertyDescriptionListFromString(L"prop:System.Keywords", IID_PPV_ARGS(&pdl));
-        if (SUCCEEDED(hr))
-        {
-          // FALSE as second param == do not show default properties.
-          hr = pfsd->SetCollectedProperties(pdl, FALSE);
-          pdl->Release();
-        }
-        break;
+        case INDEX_WEBPAGE:
+          // When .html is selected, let's ask for some other arbitrary property, say Keywords.
+          hr = PSGetPropertyDescriptionListFromString(L"prop:System.Keywords", IID_PPV_ARGS(&pdl));
+          if (SUCCEEDED(hr))
+          {
+            // FALSE as second param == do not show default properties.
+            hr = pfsd->SetCollectedProperties(pdl, FALSE);
+            pdl->Release();
+          }
+          break;
 
-      case INDEX_TEXTDOC:
-        // When .txt is selected, let's ask for some other arbitrary property, say Author.
-        hr = PSGetPropertyDescriptionListFromString(L"prop:System.Author", IID_PPV_ARGS(&pdl));
-        if (SUCCEEDED(hr))
-        {
-          // TRUE as second param == show default properties as well, but show Author property first in list.
-          hr = pfsd->SetCollectedProperties(pdl, TRUE);
-          pdl->Release();
-        }
-        break;
+        case INDEX_TEXTDOC:
+          // When .txt is selected, let's ask for some other arbitrary property, say Author.
+          hr = PSGetPropertyDescriptionListFromString(L"prop:System.Author", IID_PPV_ARGS(&pdl));
+          if (SUCCEEDED(hr))
+          {
+            // TRUE as second param == show default properties as well, but show Author property first in list.
+            hr = pfsd->SetCollectedProperties(pdl, TRUE);
+            pdl->Release();
+          }
+          break;
       }
     }
     pfsd->Release();
@@ -169,9 +175,10 @@ HRESULT CDialogEventHandler::OnTypeChange(IFileDialog* pfd)
 // IFileDialogControlEvents
 // This method gets called when an dialog control item selection happens (radio-button selection. etc).
 // For sample sake, let's react to this event by changing the dialog title.
-HRESULT CDialogEventHandler::OnItemSelected(IFileDialogCustomize* pfdc, DWORD dwIDCtl, DWORD dwIDItem)
+HRESULT
+CDialogEventHandler::OnItemSelected(IFileDialogCustomize *pfdc, DWORD dwIDCtl, DWORD dwIDItem)
 {
-  IFileDialog* pfd = NULL;
+  IFileDialog *pfd = NULL;
   HRESULT hr = pfdc->QueryInterface(&pfd);
   if (SUCCEEDED(hr))
   {
@@ -179,13 +186,9 @@ HRESULT CDialogEventHandler::OnItemSelected(IFileDialogCustomize* pfdc, DWORD dw
     {
       switch (dwIDItem)
       {
-      case CONTROL_RADIOBUTTON1:
-        hr = pfd->SetTitle(L"Longhorn Dialog");
-        break;
+        case CONTROL_RADIOBUTTON1: hr = pfd->SetTitle(L"Longhorn Dialog"); break;
 
-      case CONTROL_RADIOBUTTON2:
-        hr = pfd->SetTitle(L"Vista Dialog");
-        break;
+        case CONTROL_RADIOBUTTON2: hr = pfd->SetTitle(L"Vista Dialog"); break;
       }
     }
     pfd->Release();
@@ -194,10 +197,11 @@ HRESULT CDialogEventHandler::OnItemSelected(IFileDialogCustomize* pfdc, DWORD dw
 }
 
 // Instance creation helper
-HRESULT CDialogEventHandler_CreateInstance(REFIID riid, void** ppv)
+HRESULT
+CDialogEventHandler_CreateInstance(REFIID riid, void **ppv)
 {
   *ppv = NULL;
-  CDialogEventHandler* pDialogEventHandler = new (std::nothrow) CDialogEventHandler();
+  CDialogEventHandler *pDialogEventHandler = new (std::nothrow) CDialogEventHandler();
   HRESULT hr = pDialogEventHandler ? S_OK : E_OUTOFMEMORY;
   if (SUCCEEDED(hr))
   {
@@ -211,7 +215,8 @@ HRESULT CDialogEventHandler_CreateInstance(REFIID riid, void** ppv)
 
 // A helper function that converts UNICODE data to ANSI and writes it to the given file.
 // We write in ANSI format to make it easier to open the output file in Notepad.
-HRESULT _WriteDataToFile(HANDLE hFile, PCWSTR pszDataIn)
+HRESULT
+_WriteDataToFile(HANDLE hFile, PCWSTR pszDataIn)
 {
   // First figure out our required buffer size.
   DWORD cbData = WideCharToMultiByte(CP_ACP, 0, pszDataIn, -1, NULL, 0, NULL, NULL);
@@ -219,19 +224,19 @@ HRESULT _WriteDataToFile(HANDLE hFile, PCWSTR pszDataIn)
   if (SUCCEEDED(hr))
   {
     // Now allocate a buffer of the required size, and call WideCharToMultiByte again to do the actual conversion.
-    char* pszData = new (std::nothrow) CHAR[cbData];
+    char *pszData = new (std::nothrow) CHAR[cbData];
     hr = pszData ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
-      hr = WideCharToMultiByte(CP_ACP, 0, pszDataIn, -1, pszData, cbData, NULL, NULL)
-        ? S_OK
-        : HRESULT_FROM_WIN32(GetLastError());
+      hr = WideCharToMultiByte(CP_ACP, 0, pszDataIn, -1, pszData, cbData, NULL, NULL) ?
+               S_OK :
+               HRESULT_FROM_WIN32(GetLastError());
       if (SUCCEEDED(hr))
       {
         DWORD dwBytesWritten = 0;
-        hr = WriteFile(hFile, pszData, cbData - 1, &dwBytesWritten, NULL)
-          ? S_OK
-          : HRESULT_FROM_WIN32(GetLastError());
+        hr = WriteFile(hFile, pszData, cbData - 1, &dwBytesWritten, NULL) ?
+                 S_OK :
+                 HRESULT_FROM_WIN32(GetLastError());
       }
       delete[] pszData;
     }
@@ -247,39 +252,38 @@ HRESULT _WriteDataToFile(HANDLE hFile, PCWSTR pszDataIn)
 // [ENDAPPDATA]
 // [PROPERTY]foo=bar[ENDPROPERTY]
 // [PROPERTY]foo2=bar2[ENDPROPERTY]
-HRESULT _WritePropertyToCustomFile(PCWSTR pszFileName, PCWSTR pszPropertyName, PCWSTR pszValue)
+HRESULT
+_WritePropertyToCustomFile(PCWSTR pszFileName, PCWSTR pszPropertyName, PCWSTR pszValue)
 {
   HANDLE hFile = CreateFileW(pszFileName,
-    GENERIC_READ | GENERIC_WRITE,
-    FILE_SHARE_READ,
-    NULL,
-    OPEN_ALWAYS, // We will write only if the file exists.
-    FILE_ATTRIBUTE_NORMAL,
-    NULL);
+                             GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_READ,
+                             NULL,
+                             OPEN_ALWAYS,  // We will write only if the file exists.
+                             FILE_ATTRIBUTE_NORMAL,
+                             NULL);
 
   HRESULT hr = (hFile == INVALID_HANDLE_VALUE) ? HRESULT_FROM_WIN32(GetLastError()) : S_OK;
   if (SUCCEEDED(hr))
   {
-    const WCHAR           wszPropertyStartTag[] = L"[PROPERTY]";
-    const WCHAR           wszPropertyEndTag[] = L"[ENDPROPERTY]\r\n";
-    const DWORD           cchPropertyStartTag = (DWORD)wcslen(wszPropertyStartTag);
-    const static DWORD    cchPropertyEndTag = (DWORD)wcslen(wszPropertyEndTag);
-    DWORD const cchPropertyLine = cchPropertyStartTag +
-      cchPropertyEndTag +
-      (DWORD)wcslen(pszPropertyName) +
-      (DWORD)wcslen(pszValue) +
-      2; // 1 for '=' + 1 for NULL terminator.
+    const WCHAR wszPropertyStartTag[] = L"[PROPERTY]";
+    const WCHAR wszPropertyEndTag[] = L"[ENDPROPERTY]\r\n";
+    const DWORD cchPropertyStartTag = (DWORD)wcslen(wszPropertyStartTag);
+    const static DWORD cchPropertyEndTag = (DWORD)wcslen(wszPropertyEndTag);
+    DWORD const cchPropertyLine = cchPropertyStartTag + cchPropertyEndTag +
+                                  (DWORD)wcslen(pszPropertyName) + (DWORD)wcslen(pszValue) +
+                                  2;  // 1 for '=' + 1 for NULL terminator.
     PWSTR pszPropertyLine = new (std::nothrow) WCHAR[cchPropertyLine];
     hr = pszPropertyLine ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
       hr = StringCchPrintfW(pszPropertyLine,
-        cchPropertyLine,
-        L"%s%s=%s%s",
-        wszPropertyStartTag,
-        pszPropertyName,
-        pszValue,
-        wszPropertyEndTag);
+                            cchPropertyLine,
+                            L"%s%s=%s%s",
+                            wszPropertyStartTag,
+                            pszPropertyName,
+                            pszValue,
+                            wszPropertyEndTag);
       if (SUCCEEDED(hr))
       {
         hr = SetFilePointer(hFile, 0, NULL, FILE_END) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
@@ -304,20 +308,22 @@ HRESULT _WritePropertyToCustomFile(PCWSTR pszFileName, PCWSTR pszPropertyName, P
 // [ENDAPPDATA]
 // [PROPERTY]foo=bar[ENDPROPERTY]
 // [PROPERTY]foo2=bar2[ENDPROPERTY]
-HRESULT _WriteDataToCustomFile(PCWSTR pszFileName)
+HRESULT
+_WriteDataToCustomFile(PCWSTR pszFileName)
 {
   HANDLE hFile = CreateFileW(pszFileName,
-    GENERIC_READ | GENERIC_WRITE,
-    FILE_SHARE_READ,
-    NULL,
-    CREATE_ALWAYS,  // Let's always create this file.
-    FILE_ATTRIBUTE_NORMAL,
-    NULL);
+                             GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_READ,
+                             NULL,
+                             CREATE_ALWAYS,  // Let's always create this file.
+                             FILE_ATTRIBUTE_NORMAL,
+                             NULL);
 
   HRESULT hr = (hFile == INVALID_HANDLE_VALUE) ? HRESULT_FROM_WIN32(GetLastError()) : S_OK;
   if (SUCCEEDED(hr))
   {
-    WCHAR wszDummyContent[] = L"[MYAPPDATA]\r\nThis is an example of how to use the IFileSaveDialog interface.\r\n[ENDMYAPPDATA]\r\n";
+    WCHAR wszDummyContent[] = L"[MYAPPDATA]\r\nThis is an example of how to use the "
+                              L"IFileSaveDialog interface.\r\n[ENDMYAPPDATA]\r\n";
 
     hr = _WriteDataToFile(hFile, wszDummyContent);
     CloseHandle(hFile);
@@ -327,18 +333,20 @@ HRESULT _WriteDataToCustomFile(PCWSTR pszFileName)
 
 /* Common File Dialog Snippets ***************************************************************************************************/
 
-static bool SetDefaultPath(IFileDialog* dialog, std::wstring defaultPathW)
+static bool
+SetDefaultPath(IFileDialog *dialog, std::wstring defaultPathW)
 {
   if (defaultPathW == L"")
   {
     return true;
   }
 
-  IShellItem* folder;
+  IShellItem *folder;
   HRESULT result = SHCreateItemFromParsingName(defaultPathW.c_str(), NULL, IID_PPV_ARGS(&folder));
 
   // Valid non results.
-  if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) || result == HRESULT_FROM_WIN32(ERROR_INVALID_DRIVE))
+  if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) ||
+      result == HRESULT_FROM_WIN32(ERROR_INVALID_DRIVE))
   {
     return true;
   }
@@ -357,15 +365,17 @@ static bool SetDefaultPath(IFileDialog* dialog, std::wstring defaultPathW)
 }
 
 // This code snippet demonstrates how to work with the common file dialog interface
-HRESULT BasicFileOpen()
+HRESULT
+BasicFileOpen()
 {
   // CoCreate the File Open Dialog object.
-  IFileDialog* pfd = NULL;
-  HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+  IFileDialog *pfd = NULL;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
   if (SUCCEEDED(hr))
   {
     // Create an event handling object, and hook it up to the dialog.
-    IFileDialogEvents* pfde = NULL;
+    IFileDialogEvents *pfde = NULL;
     hr = CDialogEventHandler_CreateInstance(IID_PPV_ARGS(&pfde));
     if (SUCCEEDED(hr))
     {
@@ -393,8 +403,8 @@ HRESULT BasicFileOpen()
               hr = pfd->SetFileTypeIndex(INDEX_WORDDOC);
               if (SUCCEEDED(hr))
               {
-                // Set the default extension to be ".wav" file.
-                hr = pfd->SetDefaultExtension(L"wav");
+                // Set the default extension to be ".*" file.
+                hr = pfd->SetDefaultExtension(L"*");
                 if (SUCCEEDED(hr))
                 {
                   std::wstring setFolder = gLastBrowsedFile.substr(0, gLastBrowsedFile.rfind('\\'));
@@ -410,7 +420,7 @@ HRESULT BasicFileOpen()
                   {
                     // Obtain the result, once the user clicks the 'Open' button.
                     // The result is an IShellItem object.
-                    IShellItem* psiResult;
+                    IShellItem *psiResult;
                     hr = pfd->GetResult(&psiResult);
                     if (SUCCEEDED(hr))
                     {
@@ -452,26 +462,29 @@ HRESULT BasicFileOpen()
 // This code snippet demonstrates how to extend the Common Places area.
 // Look at CDialogEventHandler::OnItemSelected to see how messages pertaining to the added
 // controls can be processed.
-HRESULT AddItemsToCommonPlaces()
+HRESULT
+AddItemsToCommonPlaces()
 {
   // CoCreate the File Open Dialog object.
-  IFileDialog* pfd = NULL;
-  HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+  IFileDialog *pfd = NULL;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
   if (SUCCEEDED(hr))
   {
     // Always use known folders instead of hard-coding physical file paths.
     // In this case we are using Public Music KnownFolder.
-    IKnownFolderManager* pkfm = NULL;
-    hr = CoCreateInstance(CLSID_KnownFolderManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pkfm));
+    IKnownFolderManager *pkfm = NULL;
+    hr =
+        CoCreateInstance(CLSID_KnownFolderManager, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pkfm));
     if (SUCCEEDED(hr))
     {
       // Get the known folder.
-      IKnownFolder* pKnownFolder = NULL;
+      IKnownFolder *pKnownFolder = NULL;
       hr = pkfm->GetFolder(FOLDERID_PublicMusic, &pKnownFolder);
       if (SUCCEEDED(hr))
       {
         // File Dialog APIs need an IShellItem that represents the location.
-        IShellItem* psi = NULL;
+        IShellItem *psi = NULL;
         hr = pKnownFolder->GetShellItem(0, IID_PPV_ARGS(&psi));
         if (SUCCEEDED(hr))
         {
@@ -500,16 +513,18 @@ HRESULT AddItemsToCommonPlaces()
 }
 
 // This code snippet demonstrates how to add custom controls in the Common File Dialog.
-HRESULT AddCustomControls()
+HRESULT
+AddCustomControls()
 {
   // CoCreate the File Open Dialog object.
-  IFileDialog* pfd = NULL;
-  HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+  IFileDialog *pfd = NULL;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
   if (SUCCEEDED(hr))
   {
     // Create an event handling object, and hook it up to the dialog.
-    IFileDialogEvents* pfde = NULL;
-    DWORD               dwCookie = 0;
+    IFileDialogEvents *pfde = NULL;
+    DWORD dwCookie = 0;
     hr = CDialogEventHandler_CreateInstance(IID_PPV_ARGS(&pfde));
     if (SUCCEEDED(hr))
     {
@@ -518,7 +533,7 @@ HRESULT AddCustomControls()
       if (SUCCEEDED(hr))
       {
         // Set up a Customization.
-        IFileDialogCustomize* pfdc = NULL;
+        IFileDialogCustomize *pfdc = NULL;
         hr = pfd->QueryInterface(IID_PPV_ARGS(&pfdc));
         if (SUCCEEDED(hr))
         {
@@ -536,18 +551,18 @@ HRESULT AddCustomControls()
               {
                 // Add individual buttons to the radio-button list.
                 hr = pfdc->AddControlItem(CONTROL_RADIOBUTTONLIST,
-                  CONTROL_RADIOBUTTON1,
-                  L"Change Title to Longhorn");
+                                          CONTROL_RADIOBUTTON1,
+                                          L"Change Title to Longhorn");
                 if (SUCCEEDED(hr))
                 {
                   hr = pfdc->AddControlItem(CONTROL_RADIOBUTTONLIST,
-                    CONTROL_RADIOBUTTON2,
-                    L"Change Title to Vista");
+                                            CONTROL_RADIOBUTTON2,
+                                            L"Change Title to Vista");
                   if (SUCCEEDED(hr))
                   {
                     // Set the default selection to option 1.
-                    hr = pfdc->SetSelectedControlItem(CONTROL_RADIOBUTTONLIST,
-                      CONTROL_RADIOBUTTON1);
+                    hr =
+                        pfdc->SetSelectedControlItem(CONTROL_RADIOBUTTONLIST, CONTROL_RADIOBUTTON1);
                   }
                 }
               }
@@ -588,16 +603,18 @@ HRESULT AddCustomControls()
 // This code snippet demonstrates how to add default metadata in the Common File Dialog.
 // Look at CDialogEventHandler::OnTypeChange to see to change the order/list of properties
 // displayed in the Common File Dialog.
-HRESULT SetDefaultValuesForProperties()
+HRESULT
+SetDefaultValuesForProperties()
 {
   // CoCreate the File Open Dialog object.
-  IFileSaveDialog* pfsd = NULL;
-  HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
+  IFileSaveDialog *pfsd = NULL;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
   if (SUCCEEDED(hr))
   {
     // Create an event handling object, and hook it up to the dialog.
-    IFileDialogEvents* pfde = NULL;
-    DWORD               dwCookie = 0;
+    IFileDialogEvents *pfde = NULL;
+    DWORD dwCookie = 0;
     hr = CDialogEventHandler_CreateInstance(IID_PPV_ARGS(&pfde));
     if (SUCCEEDED(hr))
     {
@@ -615,7 +632,7 @@ HRESULT SetDefaultValuesForProperties()
             hr = pfsd->SetDefaultExtension(L"doc");
             if (SUCCEEDED(hr))
             {
-              IPropertyStore* pps = NULL;
+              IPropertyStore *pps = NULL;
 
               // The InMemory Property Store is a Property Store that is
               // kept in the memory instead of persisted in a file stream.
@@ -682,11 +699,13 @@ HRESULT SetDefaultValuesForProperties()
 // 2.  Replicating properties in the "Save As" scenario where the user choses to save an existing file
 //     with a different name.  We need to make sure we replicate not just the data,
 //     but also the properties of the original file.
-HRESULT WritePropertiesUsingHandlers()
+HRESULT
+WritePropertiesUsingHandlers()
 {
   // CoCreate the File Open Dialog object.
-  IFileSaveDialog* pfsd;
-  HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
+  IFileSaveDialog *pfsd;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
   if (SUCCEEDED(hr))
   {
     WCHAR szFullPathToTestFile[MAX_PATH] = {};
@@ -694,7 +713,7 @@ HRESULT WritePropertiesUsingHandlers()
     // For this exercise, let's just support only one file type to make things simpler.
     // Also, let's use the jpg format for sample purpose because the Windows ships with
     // property handlers for jpg files.
-    const COMDLG_FILTERSPEC rgSaveTypes[] = { {L"Photo Document (*.jpg)", L"*.jpg"} };
+    const COMDLG_FILTERSPEC rgSaveTypes[] = { { L"Photo Document (*.jpg)", L"*.jpg" } };
 
     // Set the file types to display.
     hr = pfsd->SetFileTypes(ARRAYSIZE(rgSaveTypes), rgSaveTypes);
@@ -726,16 +745,27 @@ HRESULT WritePropertiesUsingHandlers()
               hr = SHGetKnownFolderPath(FOLDERID_SamplePictures, 0, NULL, &pszPicturesFolderPath);
               if (SUCCEEDED(hr))
               {
-                hr = PathCombineW(szFullPathToTestFile, pszPicturesFolderPath, L"Flower.jpg") ? S_OK : E_FAIL;
+                hr = PathCombineW(szFullPathToTestFile, pszPicturesFolderPath, L"Flower.jpg") ?
+                         S_OK :
+                         E_FAIL;
                 if (SUCCEEDED(hr))
                 {
-                  IPropertyStore* pps;
-                  hr = SHGetPropertyStoreFromParsingName(szFullPathToTestFile, NULL, GPS_DEFAULT, IID_PPV_ARGS(&pps));
+                  IPropertyStore *pps;
+                  hr = SHGetPropertyStoreFromParsingName(szFullPathToTestFile,
+                                                         NULL,
+                                                         GPS_DEFAULT,
+                                                         IID_PPV_ARGS(&pps));
                   if (FAILED(hr))
                   {
                     // Flower.jpg is probably not in the Pictures folder.
-                    TaskDialog(NULL, NULL, L"CommonFileDialogApp", L"Create Flower.jpg in the Pictures folder and try again.",
-                      NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON, NULL);
+                    TaskDialog(NULL,
+                               NULL,
+                               L"CommonFileDialogApp",
+                               L"Create Flower.jpg in the Pictures folder and try again.",
+                               NULL,
+                               TDCBF_OK_BUTTON,
+                               TD_ERROR_ICON,
+                               NULL);
                   }
                   else
                   {
@@ -758,7 +788,7 @@ HRESULT WritePropertiesUsingHandlers()
       hr = pfsd->Show(NULL);
       if (SUCCEEDED(hr))
       {
-        IShellItem* psiResult;
+        IShellItem *psiResult;
         hr = pfsd->GetResult(&psiResult);
         if (SUCCEEDED(hr))
         {
@@ -771,7 +801,9 @@ HRESULT WritePropertiesUsingHandlers()
             //
             // In the real-world, you would actually add code to replicate the data of
             // file that is currently open.
-            hr = CopyFileW(szFullPathToTestFile, pszNewFileName, FALSE) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+            hr = CopyFileW(szFullPathToTestFile, pszNewFileName, FALSE) ?
+                     S_OK :
+                     HRESULT_FROM_WIN32(GetLastError());
             if (SUCCEEDED(hr))
             {
               // Now apply the properties.
@@ -782,7 +814,7 @@ HRESULT WritePropertiesUsingHandlers()
               //
               // Property handlers for the specified file type should be registered for this
               // to work.
-              IPropertyStore* pps;
+              IPropertyStore *pps;
 
               // When we call GetProperties, we get back all the properties that we originally set
               // (in our call to SetProperties above) plus the ones user modified in the file dialog.
@@ -809,15 +841,17 @@ HRESULT WritePropertiesUsingHandlers()
 }
 
 // This code snippet demonstrates how to write properties without using property handlers.
-HRESULT WritePropertiesWithoutUsingHandlers()
+HRESULT
+WritePropertiesWithoutUsingHandlers()
 {
   // CoCreate the File Open Dialog object.
-  IFileSaveDialog* pfsd;
-  HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
+  IFileSaveDialog *pfsd;
+  HRESULT hr =
+      CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfsd));
   if (SUCCEEDED(hr))
   {
     // For this exercise, let's use a custom file type.
-    const COMDLG_FILTERSPEC rgSaveTypes[] = { {L"MyApp Document (*.myApp)", L"*.myApp"} };
+    const COMDLG_FILTERSPEC rgSaveTypes[] = { { L"MyApp Document (*.myApp)", L"*.myApp" } };
 
     // Set the file types to display.
     hr = pfsd->SetFileTypes(ARRAYSIZE(rgSaveTypes), rgSaveTypes);
@@ -839,8 +873,9 @@ HRESULT WritePropertiesWithoutUsingHandlers()
             if (SUCCEEDED(hr))
             {
               // Set the properties you want the FileSave dialog to collect from the user.
-              IPropertyDescriptionList* pdl;
-              hr = PSGetPropertyDescriptionListFromString(L"prop:System.Keywords", IID_PPV_ARGS(&pdl));
+              IPropertyDescriptionList *pdl;
+              hr = PSGetPropertyDescriptionListFromString(L"prop:System.Keywords",
+                                                          IID_PPV_ARGS(&pdl));
               if (SUCCEEDED(hr))
               {
                 // TRUE as second param == show default properties as well, but show Keyword first.
@@ -859,7 +894,7 @@ HRESULT WritePropertiesWithoutUsingHandlers()
       hr = pfsd->Show(NULL);
       if (SUCCEEDED(hr))
       {
-        IShellItem* psiResult;
+        IShellItem *psiResult;
         hr = pfsd->GetResult(&psiResult);
         if (SUCCEEDED(hr))
         {
@@ -873,7 +908,7 @@ HRESULT WritePropertiesWithoutUsingHandlers()
             if (SUCCEEDED(hr))
             {
               // Now get the property store and write each individual property to the file.
-              IPropertyStore* pps;
+              IPropertyStore *pps;
               hr = pfsd->GetProperties(&pps);
               if (SUCCEEDED(hr))
               {
@@ -904,7 +939,8 @@ HRESULT WritePropertiesWithoutUsingHandlers()
                         if (SUCCEEDED(hr))
                         {
                           // Write the property to the file.
-                          hr = _WritePropertyToCustomFile(pszNewFileName, pszPropertyName, wszValue);
+                          hr =
+                              _WritePropertyToCustomFile(pszNewFileName, pszPropertyName, wszValue);
                         }
                       }
                       PropVariantClear(&propvarValue);
@@ -925,7 +961,6 @@ HRESULT WritePropertiesWithoutUsingHandlers()
   }
   return hr;
 }
-
 
 
 #endif

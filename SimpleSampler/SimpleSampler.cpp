@@ -81,9 +81,10 @@ BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod &mod)
 ////////////////////////////////////////////////////////////////////////////////////////
 
 SimpleSampler::SimpleSampler(const InstanceInfo &info) :
-  Plugin(info, MakeConfig(kNumParams, kNumPresets))
+  Plugin(info, MakeConfig(kNumParams, kNumPresets)),
+  mMasterVolume(85.0)
 {
-  GetParam(kParamGain)->InitDouble("Gain", 85., 0., 100.0, 0.01, "%");
+  GetParam(kParamMasterVolume)->InitDouble("Master Volume", 85., 0., 100.0, 0.01, "%");
 
 #if IPLUG_EDITOR  // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() { return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS); };
@@ -112,8 +113,19 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
     //    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
-    //    pGraphics->AttachControl(new IVSliderControl(sliderBounds, kParamGain), kCtrlTagSlider);
-    //    pGraphics->AttachControl(new ITextControl(titleBounds, "SimpleSampler", IText(30)), kCtrlTagTitle);
+    pGraphics->AttachControl(new IVKnobControl(IRECT(700, 80, 800, 180), kParamMasterVolume),
+                             kCtrlTagMasterVolume);
+    for (int i = 0; i < 12; i++)
+    {
+      pGraphics->AttachControl(new ITextControl({ 37 + static_cast<float>(i) * 80,
+                                                  200,
+                                                  37 + (static_cast<float>(i) + 1) * 80,
+                                                  220 },
+                                                "Empty1",
+                                                IText(14, COLOR_WHITE)),
+                               kCtrlTagSampleName0 + i);
+    }
+
     //    WDL_String buildInfoStr;
     //    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
     //    pGraphics->AttachControl(new ITextControl(versionBounds, buildInfoStr.Get(), DEFAULT_TEXT.WithAlign(EAlign::Far)), kCtrlTagVersionNumber);
@@ -127,20 +139,24 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(
-          new BounceBtnBrowseControl(37 + i * 80, 250, folderBtnBitmap[i], kParamBrowse + i),
-          kCtrlTagBrowse0 + i);
+      pGraphics->AttachControl(new BounceBtnBrowseControl(37 + static_cast<float>(i) * 80,
+                                                          250,
+                                                          folderBtnBitmap[i],
+                                                          kParamBrowse + i),
+                               kCtrlTagBrowse0 + i);
     }
 
     // The arrow buttons
     for (int i = 0; i < 12; ++i)
     {
-      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((upBtnBitmap.W() / 2) + 48),
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + static_cast<float>(i) *
+                                                                  ((upBtnBitmap.W() / 2) + 48),
                                                          230,
                                                          upBtnBitmap,
                                                          kParamUp + i),
                                kCtrlTagUp0 + i);
-      pGraphics->AttachControl(new BounceBtnArrowControl(55 + i * ((downBtnBitmap.W() / 2) + 48),
+      pGraphics->AttachControl(new BounceBtnArrowControl(55 + static_cast<float>(i) *
+                                                                  ((downBtnBitmap.W() / 2) + 48),
                                                          310,
                                                          downBtnBitmap,
                                                          kParamDown + i),
@@ -148,6 +164,20 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     }
   };
 #endif
+}
+
+void
+SimpleSampler::OnUIOpen()
+{
+  for (int i = 0; i < 12; i++)
+  {
+    std::string stripped = GetNarrowFileName(mSampleFile[i].mFileName);
+    ((ITextControl *)(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + i)))
+        ->SetStr(stripped.c_str());
+    GetUI()->GetControlWithTag(kCtrlTagSampleName0 + i)->SetDirty(true);
+  }
+
+  IEditorDelegate::OnUIOpen();
 }
 
 //#if IPLUG_EDITOR
@@ -179,7 +209,7 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 
   // Save parameters except the leds and the parameters that are stored in sequencer.
   int n = NParams();
-  for (int i = kParamGain; i < n && savedOK; ++i)
+  for (int i = kParamMasterVolume; i < n && savedOK; ++i)
   {
     const IParam *pParam = GetParam(i);
     Trace(TRACELOC, " %s %d %f", pParam->GetName(), i, pParam->Value());
@@ -224,7 +254,7 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   pos = chunk.Get(&version, pos);
   assert(version == 1.0);
 
-  for (int i = kParamGain; i < n && pos >= 0; ++i)
+  for (int i = kParamMasterVolume; i < n && pos >= 0; ++i)
   {
     IParam *pParam = GetParam(i);
     double v = 0.0;
@@ -261,11 +291,6 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 void
 SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 {
-  //using convert_type = std::codecvt_utf8<wchar_t>;
-  //std::wstring_convert<convert_type, wchar_t> converter;
-  //std::string converted_str = converter.to_bytes(wFileName);
-  //simpleSampler->mSampleFile[nr].mFileName = converted_str.c_str();
-
   mSampleFile[nr].mFileName = wFileName;
   mSampleFile[nr].loadFile();
   if (nr == 11)
@@ -318,9 +343,32 @@ SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
         if (msg.NoteNumber() >= 36 && msg.NoteNumber() <= 47)
         {
           mSampleFile[msg.NoteNumber() - 36].mCurrentSample = 0;
-          mSampleFile[msg.NoteNumber() - 36].mVelocity = msg.Velocity();
+          mSampleFile[msg.NoteNumber() - 36].mVelocity = static_cast<float>(msg.Velocity());
         }
+
+        //// The first holder can send MIDI.
+        //if (msg.NoteNumber() == 36)
+        //{
+        //  IMidiMsg midiMessage;
+        //  midiMessage.MakeNoteOnMsg(msg.NoteNumber(), msg.Velocity(), 0);
+        //  IPlugVST3ProcessorBase::SendMidiMsg(midiMessage);
+        //}
+        //// The first holder can send MIDI.
       }
+
+      //// The first holder can send MIDI.
+      //if (msg.NoteNumber() == 36)
+      //{
+      //  if (msg.StatusMsg() == IMidiMsg::kNoteOff)
+      //  {
+      //    IMidiMsg midiMessage;
+      //    midiMessage.MakeNoteOffMsg(msg.NoteNumber(), 0);
+      //    IPlugVST3ProcessorBase::SendMidiMsg(midiMessage);
+      //  }
+      //}
+      //// The first holder can send MIDI.
+
+
       mMidiQueue.Remove();
     }
 
@@ -329,25 +377,44 @@ SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
       stereo =
           mSampleFile[i / 2]
               .getStereo();  // Note: Call getStereo() only one time, than use .left and .right to get the values.
-      outputs[i][offset] = stereo.left;
-      outputs[i + 1][offset] = stereo.right;
+      outputs[i][offset] = stereo.left * mMasterVolume / 100.0;
+      outputs[i + 1][offset] = stereo.right * mMasterVolume / 100.0;
     }
   }
   mMidiQueue.Flush(nFrames);
 }
 #endif
 
+std::string
+SimpleSampler::GetNarrowFileName(std::wstring f)
+{
+  std::wstring stripped =
+      f.substr(f.rfind(L"\\") + 1,
+               f.length() - (f.rfind(L"\\") + 1) - (f.length() - f.rfind(L".")));
+
+  std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+  std::string s = converter.to_bytes(stripped);
+
+  return s;
+}
+
 #if IPLUG_DSP
 //void SimpleSampler::OnParamChange(int paramIdx)
 void
 SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {
-  if (source != kUI)
-  {
-    return;
-  }
+  //if (source != kUI || source != kHost)
+  //{
+  //  return;
+  //}
 
   double value = GetParam(paramIdx)->Value();
+
+  // Master Volume
+  if (paramIdx == kParamMasterVolume)
+  {
+    mMasterVolume = value;
+  }
 
   // Browse buttons
   if (paramIdx >= kParamBrowse && paramIdx < kParamBrowse + 12)
@@ -365,6 +432,12 @@ SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 
     gLastBrowsedFile = mSampleFile[paramIdx - kParamBrowse].mFileName;
     BasicFileOpen();
+
+    std::string stripped = GetNarrowFileName(gLastBrowsedFile);
+    ((ITextControl *)(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + paramIdx - kParamBrowse)))
+        ->SetStr(stripped.c_str());
+    GetUI()->GetControlWithTag(kCtrlTagSampleName0 + paramIdx - kParamBrowse)->SetDirty(true);
+
 #ifdef _DEBUG
     std::wstring mess2 = L"File choosed " + gLastBrowsedFile + L"\n";
     OutputDebugStringW(mess2.c_str());
@@ -457,6 +530,11 @@ SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     OutputDebugStringW(mess.c_str());
 #endif
     ChangeSampleFile(sampleNr, fileFound);  // Is it wise to do this? Change file in DSP thread?
+
+    std::string fn = GetNarrowFileName(mSampleFile[sampleNr].mFileName);
+    static_cast<ITextControl *>(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + sampleNr))
+        ->SetStr(fn.c_str());
+    GetUI()->GetControlWithTag(kCtrlTagSampleName0 + sampleNr)->SetDirty(true);
   }
 }
 #endif

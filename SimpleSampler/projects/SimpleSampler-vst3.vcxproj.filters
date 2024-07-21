@@ -438,6 +438,7 @@
     <None Include="..\config\SimpleSampler-mac.xcconfig">
       <Filter>config</Filter>
     </None>
+    <None Include="..\..\common-win.props" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\resources\bitmap1.bmp" />

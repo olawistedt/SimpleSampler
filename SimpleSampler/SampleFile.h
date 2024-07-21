@@ -27,4 +27,5 @@ private:
   double*    mBuffer;
   sf_count_t mSize;
   std::string mDllDir;
+  bool mInLoadingFile;
 };

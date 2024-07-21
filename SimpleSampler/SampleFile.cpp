@@ -3,7 +3,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#ifndef APP_API
 extern HINSTANCE ghInst;
+#endif
 
 typedef SNDFILE *(*LPFN_sf_wchar_open)(const wchar_t *, int, SF_INFO *);
 typedef int (*LPFN_sf_close)(SNDFILE *);
@@ -15,7 +17,12 @@ static LPFN_sf_read_double lpfn_sf_read_double;
 
 #endif
 
-SampleFile::SampleFile() : mBuffer(NULL), mSize(0), mSfinfo({ 0, 0, 0, 0, 0, 0 }), mCurrentSample(0)
+SampleFile::SampleFile() :
+  mBuffer(NULL),
+  mSize(0),
+  mSfinfo({ 0, 0, 0, 0, 0, 0 }),
+  mCurrentSample(0),
+  mInLoadingFile(false)
 {
   LoadDllFunctions();
 }
@@ -34,7 +41,12 @@ void
 SampleFile::LoadDllFunctions()
 {
   CHAR buffer[2048];
+#ifndef APP_API
   GetModuleFileName(ghInst, buffer, sizeof(buffer));
+#else
+  GetModuleFileName(nullptr, buffer, sizeof(buffer));
+#endif
+
   *(strrchr(buffer, '\\') + 1) = '\0';  // Cut off the path to vst dll.
   std::string pluginDir(buffer);
   std::string sndFileDll = pluginDir + "\\sndfile.dll";
@@ -76,6 +88,7 @@ SampleFile::LoadDllFunctions()
 bool
 SampleFile::loadFile()
 {
+  mInLoadingFile = true;
   //  assert(mFileName != L"");
 
 #ifdef _WIN32
@@ -104,6 +117,8 @@ SampleFile::loadFile()
   lpfn_sf_close(sndFile);
 
   mCurrentSample = mSfinfo.frames;
+
+  mInLoadingFile = false;
 
   return true;
 }
@@ -148,7 +163,7 @@ SampleFile::getStereo()
 {
   Stereo stereo = { 0.0, 0.0 };
 
-  if (mBuffer == NULL)
+  if (mInLoadingFile || mBuffer == NULL)
   {
     return stereo;
   }  // Silent
@@ -165,8 +180,8 @@ SampleFile::getStereo()
     }
     else  // Is mono
     {
-      assert(mSfinfo.channels == 1);           // Only mono files will work
-      stereo.left = mBuffer[mCurrentSample] * mVelocity / 127.0;  // * m_fLeftVolume;
+      assert(mSfinfo.channels == 1);                               // Only mono files will work
+      stereo.left = mBuffer[mCurrentSample] * mVelocity / 127.0;   // * m_fLeftVolume;
       stereo.right = mBuffer[mCurrentSample] * mVelocity / 127.0;  // *m_fRightVolume;
     }
     mCurrentSample++;
