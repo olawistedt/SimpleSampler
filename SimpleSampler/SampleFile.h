@@ -16,16 +16,19 @@ public:
   bool loadFile();
   void reverse();
   Stereo SampleFile::getStereo();
-  sf_count_t mCurrentSample;
   float mVelocity;
   std::wstring mFileName;
+  double *mBuffer;
+  unsigned long mSize;
+  unsigned long mFrames;
+  unsigned long mCurrentSample;
+  int mNrOfSampleChannels;
+
 private:
 #ifdef _WIN32
   void LoadDllFunctions();
 #endif
-  SF_INFO    mSfinfo;
-  double*    mBuffer;
-  sf_count_t mSize;
+  SF_INFO mSfinfo;
   std::string mDllDir;
   bool mInLoadingFile;
 };

@@ -22,6 +22,7 @@ SampleFile::SampleFile() :
   mSize(0),
   mSfinfo({ 0, 0, 0, 0, 0, 0 }),
   mCurrentSample(0),
+  mNrOfSampleChannels(0),
   mInLoadingFile(false)
 {
   LoadDllFunctions();
@@ -91,32 +92,43 @@ SampleFile::loadFile()
   mInLoadingFile = true;
   //  assert(mFileName != L"");
 
+  OutputDebugStringW(std::wstring(L"Loading file '" + mFileName + L"'\n").c_str());
+
 #ifdef _WIN32
   SNDFILE *sndFile = lpfn_sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);
 #endif
 
   if (sndFile == NULL)
   {
-    mBuffer = NULL;
-    return false;
+    OutputDebugStringW(std::wstring(L"File not found or couldn't be read '" + mFileName +
+                                    L"' Using current buffer instead\n")
+                           .c_str());
+    mInLoadingFile = false;
+    mFrames = mSize / mNrOfSampleChannels;
+    // Let the mBuffer still be valid, could contain the previous loaded sample.
+    return true;  // This is a valid behaviour.
   }
 
-  sf_count_t buffSize = mSfinfo.frames * mSfinfo.channels;
+  mFrames = static_cast<unsigned long>(mSfinfo.frames);
 
-  assert(mSfinfo.channels == 1 || mSfinfo.channels == 2);  // Only mono or stereo files will work
+  mNrOfSampleChannels = mSfinfo.channels;
+  mSize = mFrames * mNrOfSampleChannels;
+
+  assert(mNrOfSampleChannels == 1 ||
+         mNrOfSampleChannels == 2);  // Only mono or stereo files will work
 
   if (mBuffer)
   {
     delete mBuffer;
   }
 
-  mBuffer = new double[buffSize];
+  mBuffer = new double[mSize];
 
-  mSize = lpfn_sf_read_double(sndFile, mBuffer, buffSize);
+  lpfn_sf_read_double(sndFile, mBuffer, mSize);
 
   lpfn_sf_close(sndFile);
 
-  mCurrentSample = mSfinfo.frames;
+  mCurrentSample = mSize / mNrOfSampleChannels;
 
   mInLoadingFile = false;
 
@@ -130,15 +142,15 @@ SampleFile::reverse()
   {
     return;
   }
-  double *tmpBuffer = new double[mSfinfo.frames];
-  if (mSfinfo.channels == 2)  // Is stereo
+  double *tmpBuffer = new double[mFrames];
+  if (mNrOfSampleChannels == 2)  // Is stereo
   {
-    for (int i = 0; i < mSfinfo.frames; i += 2)
+    for (int i = 0; i < mFrames; i += 2)
     {
-      tmpBuffer[i] = mBuffer[mSfinfo.frames - i - 1];
-      tmpBuffer[i + 1] = mBuffer[mSfinfo.frames - i];
+      tmpBuffer[i] = mBuffer[mFrames - i - 1];
+      tmpBuffer[i + 1] = mBuffer[mFrames - i];
     }
-    for (int i = 0; i < mSfinfo.frames; i += 2)
+    for (int i = 0; i < mFrames; i += 2)
     {
       mBuffer[i] = tmpBuffer[i];
       mBuffer[i + 1] = tmpBuffer[i + 1];
@@ -146,11 +158,11 @@ SampleFile::reverse()
   }
   else  // Mono
   {
-    for (int i = 0; i < mSfinfo.frames; i += 1)
+    for (int i = 0; i < mFrames; i += 1)
     {
-      tmpBuffer[i] = mBuffer[mSfinfo.frames - i];
+      tmpBuffer[i] = mBuffer[mFrames - i];
     }
-    for (int i = 0; i < mSfinfo.frames; i += 1)
+    for (int i = 0; i < mFrames; i += 1)
     {
       mBuffer[i] = tmpBuffer[i];
     }
@@ -167,20 +179,20 @@ SampleFile::getStereo()
   {
     return stereo;
   }  // Silent
-  if (mCurrentSample >= mSfinfo.frames)
+  if (mCurrentSample >= mFrames)
   {
     return stereo;
   }  // Silent
-  if (mCurrentSample < mSfinfo.frames && mBuffer != NULL)
+  if (mCurrentSample < mFrames && mBuffer != NULL)
   {
-    if (mSfinfo.channels == 2)  // Is stereo
+    if (mNrOfSampleChannels == 2)  // Is stereo
     {
       stereo.left = mBuffer[mCurrentSample * 2] * mVelocity / 127.0;       // * m_fLeftVolume;
       stereo.right = mBuffer[mCurrentSample * 2 + 1] * mVelocity / 127.0;  // *m_fRightVolume;
     }
     else  // Is mono
     {
-      assert(mSfinfo.channels == 1);                               // Only mono files will work
+      assert(mNrOfSampleChannels == 1);                            // Only mono files will work
       stereo.left = mBuffer[mCurrentSample] * mVelocity / 127.0;   // * m_fLeftVolume;
       stereo.right = mBuffer[mCurrentSample] * mVelocity / 127.0;  // *m_fRightVolume;
     }
