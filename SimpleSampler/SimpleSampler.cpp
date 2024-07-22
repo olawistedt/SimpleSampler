@@ -399,7 +399,20 @@ SimpleSampler::GetNarrowFileName(std::wstring f)
 }
 
 #if IPLUG_DSP
-//void SimpleSampler::OnParamChange(int paramIdx)
+
+// OnParamChange() must be used to pick up parameter changes done during a audio mixdown. For parameters that are doing this and also affects the gui must be in
+void
+SimpleSampler::OnParamChange(int paramIdx)
+{
+  double value = GetParam(paramIdx)->Value();
+
+  // Master Volume
+  if (paramIdx == kParamMasterVolume)
+  {
+    mMasterVolume = value;
+  }
+}
+
 void
 SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {

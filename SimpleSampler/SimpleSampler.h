@@ -47,7 +47,7 @@ public:
 #if IPLUG_DSP  // http://bit.ly/2S64BDd
   void ProcessMidiMsg(const IMidiMsg &msg) override;
   void OnReset() override;
-  //  void OnParamChange(int paramIdx) override;
+  void OnParamChange(int paramIdx) override;
   void OnParamChangeUI(int paramIdx, EParamSource source = kUnknown) override;
 
   void ProcessBlock(sample **inputs, sample **outputs, int nFrames) override;
