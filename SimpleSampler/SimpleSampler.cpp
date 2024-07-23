@@ -219,6 +219,7 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 
   for (int i = 0; i < 12; i++)
   {
+    // Save the sample path
     int j = -1;
     do
     {
@@ -226,6 +227,16 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
       double dChar = mSampleFile[i].mFileName[j];
       savedOK &= (chunk.Put(&dChar) > 0);
     } while (mSampleFile[i].mFileName[j] != 0);
+
+    // Save the sample content
+    double nrOfSamples = mSampleFile[i].mSize;
+    savedOK &= (chunk.Put(&nrOfSamples) > 0);  // First the size of the sample buffer
+    double nrOfChannels = mSampleFile[i].mNrOfSampleChannels;
+    savedOK &= (chunk.Put(&nrOfChannels) > 0);
+    for (j = 0; j < mSampleFile[i].mSize; j++)  // Then the sample values
+    {
+      savedOK &= (chunk.Put(&(mSampleFile[i].mBuffer[j])) > 0);
+    }
   }
 
   assert(savedOK == true);
@@ -239,6 +250,8 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 int
 SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 {
+  //  return startPos;
+
 #ifdef _DEBUG
   OutputDebugString("UnserializeState() called\n");
 #endif
@@ -256,11 +269,8 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 
   for (int i = kParamMasterVolume; i < n && pos >= 0; ++i)
   {
-    IParam *pParam = GetParam(i);
     double v = 0.0;
     pos = chunk.Get(&v, pos);
-    //    pParam->Set(v);
-    Trace(TRACELOC, "%d %s %f", i, pParam->GetName(), pParam->Value());
   }
 
   for (int i = 0; i < 12; i++)
@@ -277,8 +287,25 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
         mSampleFile[i].mFileName += static_cast<wchar_t>(dChar);
       }
     } while (dChar != 0.0);
-  }
 
+    double nrOfSamples;
+    pos = chunk.Get(&nrOfSamples, pos);
+    if (nrOfSamples > 0)
+    {
+      mSampleFile[i].mSize = nrOfSamples;
+      mSampleFile[i].mBuffer = new double[nrOfSamples];
+    }
+    double nrOfChannels;
+    pos = chunk.Get(&nrOfChannels, pos);
+    mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
+
+    for (j = 0; j < nrOfSamples; j++)
+    {
+      double sample;
+      pos = chunk.Get(&sample, pos);
+      mSampleFile[i].mBuffer[j] = sample;
+    }
+  }
 
   //OnParamReset(kPresetRecall);
 
@@ -329,7 +356,6 @@ SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
 {
   Stereo stereo;
 
-  const int nChans = NOutChansConnected();
   for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
@@ -400,7 +426,9 @@ SimpleSampler::GetNarrowFileName(std::wstring f)
 
 #if IPLUG_DSP
 
-// OnParamChange() must be used to pick up parameter changes done during a audio mixdown. For parameters that are doing this and also affects the gui must be in
+// OnParamChange() must be used to pick up parameter changes done during a audio mixdown. For
+// parameters that are doing this and also affects the gui must be handled in both
+// OnParamChange() and in OnParamChangeUI().
 void
 SimpleSampler::OnParamChange(int paramIdx)
 {
