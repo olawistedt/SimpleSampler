@@ -9,3 +9,5 @@ build-*
 */.vs
 *.pem
 mkcert*
+
+SimpleSampler/libsndfile-1.2.0-win64/
