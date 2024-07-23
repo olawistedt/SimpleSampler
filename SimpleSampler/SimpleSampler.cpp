@@ -112,7 +112,8 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     pGraphics->SetLayoutOnResize(true);
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
-    //    pGraphics->AttachPanelBackground(COLOR_LIGHT_GRAY);
+    //    pGraphics->AttachPanelBackground(COLOR_DARK_GRAY);
+
     pGraphics->AttachControl(new IVKnobControl(IRECT(700, 80, 800, 180), kParamMasterVolume),
                              kCtrlTagMasterVolume);
     for (int i = 0; i < 12; i++)
