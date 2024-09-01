@@ -108,6 +108,7 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
 
     const IBitmap upBtnBitmap = pGraphics->LoadBitmap((PNGBTNUP_FN), 2, true);
     const IBitmap downBtnBitmap = pGraphics->LoadBitmap((PNGBTNDOWN_FN), 2, true);
+    const IBitmap reverseBtnBitmap = pGraphics->LoadBitmap((PNGBTNREVERSE_FN), 2, true);
 
     pGraphics->SetLayoutOnResize(true);
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
@@ -137,19 +138,15 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     pGraphics->LoadBitmap(BACKGROUND_FN, 1, true);
     pGraphics->AttachBackground(BACKGROUND_FN);
 
-    // The browse buttons
     for (int i = 0; i < 12; ++i)
     {
+      // The browse buttons
       pGraphics->AttachControl(new BounceBtnBrowseControl(37 + static_cast<float>(i) * 80,
                                                           250,
                                                           folderBtnBitmap[i],
                                                           kParamBrowse + i),
                                kCtrlTagBrowse0 + i);
-    }
-
-    // The arrow buttons
-    for (int i = 0; i < 12; ++i)
-    {
+      // The arrow buttons
       pGraphics->AttachControl(new BounceBtnArrowControl(55 + static_cast<float>(i) *
                                                                   ((upBtnBitmap.W() / 2) + 48),
                                                          230,
@@ -162,6 +159,12 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
                                                          downBtnBitmap,
                                                          kParamDown + i),
                                kCtrlTagDown0 + i);
+      // The reverse button
+      pGraphics->AttachControl(new IBSwitchControl(37 + static_cast<float>(i) * 80,
+                                                   175,
+                                                   reverseBtnBitmap,
+                                                   kParamReverse0 + i),
+                               kCtrlTagReverse0 + i);
     }
   };
 #endif
@@ -205,7 +208,7 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
   bool savedOK = true;
 
   // Set version of the preset format.
-  double version = 1.2;
+  double version = kSimplesamplerVersion;
   savedOK &= (chunk.Put(&version) > 0);
 
   // Save parameters except the leds and the parameters that are stored in sequencer.
@@ -267,9 +270,13 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   double version;
   pos = chunk.Get(&version, pos);
 
-  if (version > 1.2)
+  //  if (version > kSimplesamplerVersion)
   {
-    // Saved with a newer version and we don't know how to parse it.
+    MessageBox(NULL,
+               L"This project/preset uses a newer version of The SimpleSampler. Please upgrade to "
+               L"the latest version of the plugin.",
+               L"SimpleSampler Plugin Error Message",
+               MB_OK | MB_ICONERROR);
     return pos;
   }
 
@@ -299,7 +306,7 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 #endif
 
 
-    if (version >= 1.2)
+    if (version >= kSimplesamplerVersion)
     {
       double nrOfSamples;
       pos = chunk.Get(&nrOfSamples, pos);

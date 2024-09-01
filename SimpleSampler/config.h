@@ -71,3 +71,4 @@
 #define PNGBTNFOLDERB_FN   "btnFolderB.png"
 #define PNGBTNUP_FN        "btnUp.png"
 #define PNGBTNDOWN_FN      "btnDown.png"
+#define PNGBTNREVERSE_FN   "btnReverse.png"

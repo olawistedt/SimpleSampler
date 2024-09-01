@@ -13,24 +13,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Swedish (Sweden) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SVE)
-LANGUAGE LANG_SWEDISH, SUBLANG_SWEDISH
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-//IDB_BITMAP1             BITMAP                  "bitmap1.bmp"
-
-#endif    // Swedish (Sweden) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
 // English (United Kingdom) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
@@ -182,7 +164,8 @@ BEGIN
     "PNGBTNFOLDERAa_FN PNG PNGBTNFOLDERAa_FN\r\n"
     "PNGBTNFOLDERB_FN PNG PNGBTNFOLDERB_FN\r\n"
     "PNGBTNUP_FN PNG PNGBTNUP_FN\r\n"
-    "PNGBTNDOWN_FN PNG PNGBTNDOWN_FN\0"
+    "PNGBTNDOWN_FN PNG PNGBTNDOWN_FN\r\n"
+    "PNGBTNREVERSE_FN PNG PNGBTNREVERSE_FN\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -278,6 +261,7 @@ PNGBTNFOLDERAa_FN PNG PNGBTNFOLDERAa_FN
 PNGBTNFOLDERB_FN PNG PNGBTNFOLDERB_FN
 PNGBTNUP_FN PNG PNGBTNUP_FN
 PNGBTNDOWN_FN PNG PNGBTNDOWN_FN
+PNGBTNREVERSE_FN PNG PNGBTNREVERSE_FN
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
