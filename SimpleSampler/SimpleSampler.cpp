@@ -205,7 +205,7 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
   bool savedOK = true;
 
   // Set version of the preset format.
-  double version = 1.0;
+  double version = 1.2;
   savedOK &= (chunk.Put(&version) > 0);
 
   // Save parameters except the leds and the parameters that are stored in sequencer.
@@ -251,7 +251,7 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 int
 SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 {
-  //  return startPos;
+  // return startPos;
 
 #ifdef _DEBUG
   OutputDebugString("UnserializeState() called\n");
@@ -266,7 +266,12 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   // Check version for the preset format
   double version;
   pos = chunk.Get(&version, pos);
-  assert(version == 1.0);
+
+  if (version > 1.2)
+  {
+    // Saved with a newer version and we don't know how to parse it.
+    return pos;
+  }
 
   for (int i = kParamMasterVolume; i < n && pos >= 0; ++i)
   {
@@ -288,23 +293,32 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
         mSampleFile[i].mFileName += static_cast<wchar_t>(dChar);
       }
     } while (dChar != 0.0);
+#ifdef _DEBUG
+    std::wstring mess = L"### Sample file name: " + mSampleFile[i].mFileName + L"\n";
+    OutputDebugStringW(mess.c_str());
+#endif
 
-    double nrOfSamples;
-    pos = chunk.Get(&nrOfSamples, pos);
-    if (nrOfSamples > 0)
-    {
-      mSampleFile[i].mSize = nrOfSamples;
-      mSampleFile[i].mBuffer = new double[nrOfSamples];
-    }
-    double nrOfChannels;
-    pos = chunk.Get(&nrOfChannels, pos);
-    mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
 
-    for (j = 0; j < nrOfSamples; j++)
+    if (version >= 1.2)
     {
-      double sample;
-      pos = chunk.Get(&sample, pos);
-      mSampleFile[i].mBuffer[j] = sample;
+      double nrOfSamples;
+      pos = chunk.Get(&nrOfSamples, pos);
+      if (nrOfSamples > 0)
+      {
+        mSampleFile[i].mSize = nrOfSamples;
+        mSampleFile[i].mBuffer = new double[nrOfSamples];
+      }
+      double nrOfChannels;
+      pos = chunk.Get(&nrOfChannels, pos);
+      mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
+      assert(nrOfChannels == 1.0 || nrOfChannels == 2.0);
+
+      for (j = 0; j < nrOfSamples; j++)
+      {
+        double sample;
+        pos = chunk.Get(&sample, pos);
+        mSampleFile[i].mBuffer[j] = sample;
+      }
     }
   }
 
