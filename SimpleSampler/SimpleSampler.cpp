@@ -280,6 +280,11 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
     return pos;
   }
 
+  if (version == 1.0)
+  {
+    n = 37;  // The version 1.0 did only have 37 parameters.
+  }
+
   for (int i = kParamMasterVolume; i < n && pos >= 0; ++i)
   {
     double v = 0.0;
