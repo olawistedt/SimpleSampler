@@ -103,10 +103,12 @@ SampleFile::loadFile()
     OutputDebugStringW(std::wstring(L"File not found or couldn't be read '" + mFileName +
                                     L"' Using current buffer instead\n")
                            .c_str());
-    mInLoadingFile = false;
-    mFrames = mSize / mNrOfSampleChannels;
-    // Let the mBuffer still be valid, could contain the previous loaded sample.
-    return true;  // This is a valid behaviour.
+    if (mSize > 0)  // Let the mBuffer still be valid, could contain the previous loaded sample.
+    {
+      mInLoadingFile = false;
+      mFrames = mSize / mNrOfSampleChannels;
+      return true;
+    }
   }
 
   mFrames = static_cast<unsigned long>(mSfinfo.frames);
