@@ -1,3 +1,10 @@
+
+
+#ifdef _DEBUG
+#define TRACER_BUILD
+#define TRACETOSTDOUT
+#endif
+
 #include "SimpleSampler.h"
 #include "IPlug_include_in_plug_src.h"
 #include <filesystem>
@@ -115,7 +122,7 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
     //    pGraphics->AttachPanelBackground(COLOR_DARK_GRAY);
 
-    pGraphics->AttachControl(new IVKnobControl(IRECT(700, 80, 800, 180), kParamMasterVolume),
+    pGraphics->AttachControl(new IVKnobControl(IRECT(900, 40, 1000, 140), kParamMasterVolume),
                              kCtrlTagMasterVolume);
     for (int i = 0; i < 12; i++)
     {
@@ -159,9 +166,13 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
                                                          downBtnBitmap,
                                                          kParamDown + i),
                                kCtrlTagDown0 + i);
-      // The reverse button
-      pGraphics->AttachControl(new IBSwitchControl(37 + static_cast<float>(i) * 80,
-                                                   175,
+    }
+    for (int i = 0; i < kNrOfReverseButtons; i++)
+    {
+      // The reverse buttons
+      pGraphics->AttachControl(new IBSwitchControl(37 + (12 - kNrOfReverseButtons) * 80 +
+                                                       static_cast<float>(i) * 80,
+                                                   145,
                                                    reverseBtnBitmap,
                                                    kParamReverse0 + i),
                                kCtrlTagReverse0 + i);
@@ -235,13 +246,20 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
     // Save the sample content
     double nrOfSamples = mSampleFile[i].mSize;
     savedOK &= (chunk.Put(&nrOfSamples) > 0);  // First the size of the sample buffer
-    double nrOfChannels = mSampleFile[i].mNrOfSampleChannels;
-    savedOK &= (chunk.Put(&nrOfChannels) > 0);
-    for (j = 0; j < mSampleFile[i].mSize; j++)  // Then the sample values
+    if (nrOfSamples > 0)
     {
-      savedOK &= (chunk.Put(&(mSampleFile[i].mBuffer[j])) > 0);
+      double nrOfChannels = mSampleFile[i].mNrOfSampleChannels;
+      assert(nrOfChannels == 1.0 || nrOfChannels == 2.0);
+      savedOK &= (chunk.Put(&nrOfChannels) > 0);
+      for (j = 0; j < mSampleFile[i].mSize; j++)  // Then the sample values
+      {
+        savedOK &= (chunk.Put(&(mSampleFile[i].mBuffer[j])) > 0);
+      }
     }
   }
+
+  // Put a guard here
+  savedOK &= (chunk.Put(&kGuard) > 0);
 
   assert(savedOK == true);
 
@@ -254,13 +272,11 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 int
 SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 {
-  // return startPos;
-
-#ifdef _DEBUG
-  OutputDebugString("UnserializeState() called\n");
-#endif
+  //  return startPos;
 
   TRACE
+
+  Trace(TRACELOC, "Entering function %s", __FUNCSIG__);
 
   ENTER_PARAMS_MUTEX
 
@@ -269,8 +285,12 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   // Check version for the preset format
   double version;
   pos = chunk.Get(&version, pos);
+#ifdef _DEBUG
+  std::wstring mess = L"### Preset file version: " + std::to_wstring(version) + L"\n";
+  OutputDebugStringW(mess.c_str());
+#endif
 
-  //  if (version > kSimplesamplerVersion)
+  if (version > kSimplesamplerVersion)
   {
     MessageBox(NULL,
                L"This project/preset uses a newer version of The SimpleSampler. Please upgrade to "
@@ -287,8 +307,11 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 
   for (int i = kParamMasterVolume; i < n && pos >= 0; ++i)
   {
+    IParam *pParam = GetParam(i);
     double v = 0.0;
     pos = chunk.Get(&v, pos);
+    pParam->Set(v);
+    Trace(TRACELOC, "%d %s %f", i, pParam->GetName(), pParam->Value());
   }
 
   for (int i = 0; i < 12; i++)
@@ -310,7 +333,6 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
     OutputDebugStringW(mess.c_str());
 #endif
 
-
     if (version >= kSimplesamplerVersion)
     {
       double nrOfSamples;
@@ -319,24 +341,38 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
       {
         mSampleFile[i].mSize = nrOfSamples;
         mSampleFile[i].mBuffer = new double[nrOfSamples];
-      }
-      double nrOfChannels;
-      pos = chunk.Get(&nrOfChannels, pos);
-      mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
-      assert(nrOfChannels == 1.0 || nrOfChannels == 2.0);
+        double nrOfChannels;
+        pos = chunk.Get(&nrOfChannels, pos);
+        mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
+        assert(nrOfChannels == 1.0 || nrOfChannels == 2.0);
 
-      for (j = 0; j < nrOfSamples; j++)
-      {
-        double sample;
-        pos = chunk.Get(&sample, pos);
-        mSampleFile[i].mBuffer[j] = sample;
+        for (j = 0; j < nrOfSamples; j++)
+        {
+          double sample;
+          pos = chunk.Get(&sample, pos);
+          mSampleFile[i].mBuffer[j] = sample;
+        }
       }
     }
   }
 
   //OnParamReset(kPresetRecall);
 
+  // Read the guard.
+  double guard;
+  pos = chunk.Get(&guard, pos);
+  assert(guard == kGuard);
+  if (guard != kGuard)
+  {
+    MessageBox(NULL,
+               L"Something went wrong while loading the preset.",
+               L"SimpleSampler Plugin Error Message",
+               MB_OK | MB_ICONERROR);
+  }
+
   LEAVE_PARAMS_MUTEX
+
+  Trace(TRACELOC, "Leaving %s", __FUNCSIG__);
 
   return pos;
 }
@@ -471,10 +507,10 @@ SimpleSampler::OnParamChange(int paramIdx)
 void
 SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
 {
-  //if (source != kUI || source != kHost)
-  //{
-  //  return;
-  //}
+  if (source != kUI && source != kHost)
+  {
+    return;
+  }
 
   double value = GetParam(paramIdx)->Value();
 
@@ -603,6 +639,10 @@ SimpleSampler::OnParamChangeUI(int paramIdx, EParamSource source)
     static_cast<ITextControl *>(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + sampleNr))
         ->SetStr(fn.c_str());
     GetUI()->GetControlWithTag(kCtrlTagSampleName0 + sampleNr)->SetDirty(true);
+  }
+  if (paramIdx >= kParamReverse0 && paramIdx < kParamReverse0 + kNrOfReverseButtons)
+  {
+    mSampleFile[paramIdx - kParamReverse0 + 12 - kNrOfReverseButtons].reverse();
   }
 }
 #endif

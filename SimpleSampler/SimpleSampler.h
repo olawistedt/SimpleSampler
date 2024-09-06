@@ -4,8 +4,10 @@
 #include "SampleFile.h"
 #include "FileBrowser.h"
 
-const float kSimplesamplerVersion = 1.1f;
+const double kSimplesamplerVersion = 1.1;
+const double kGuard = 111.111;
 const int kNumPresets = 1;
+const int kNrOfReverseButtons = 4;
 
 enum EParams
 {
@@ -14,7 +16,7 @@ enum EParams
   kParamUp = kParamBrowse + 12,
   kParamDown = kParamUp + 12,
   kParamReverse0 = kParamDown + 12,
-  kNumParams = kParamReverse0 + 12
+  kNumParams = kParamReverse0 + kNrOfReverseButtons
 };
 
 enum ECtrlTags
@@ -26,7 +28,7 @@ enum ECtrlTags
   kCtrlTagDown0 = kCtrlTagUp0 + 12,
   kCtrlTagMasterVolume = kCtrlTagDown0 + 12,
   kCtrlTagReverse0,
-  kNumCtrls = kCtrlTagReverse0 + 12
+  kNumCtrls = kCtrlTagReverse0 + kNrOfReverseButtons
 };
 
 using namespace iplug;

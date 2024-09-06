@@ -1,0 +1,1 @@
+cp -r -Force "..\Audio-Develop-Plugins\VST3\SimpleSampler.vst3" "C:\Program Files\Common Files\VST3\."
