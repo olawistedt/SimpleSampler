@@ -1,5 +1,4 @@
 
-
 #ifdef _DEBUG
 #define TRACER_BUILD
 #define TRACETOSTDOUT
@@ -383,10 +382,6 @@ SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 {
   mSampleFile[nr].mFileName = wFileName;
   mSampleFile[nr].loadFile();
-  if (nr == 11)
-  {
-    mSampleFile[nr].reverse();
-  }
 }
 
 void
@@ -397,10 +392,6 @@ SimpleSampler::OnReset()
     if (mSampleFile[i].mFileName != L"")
     {
       mSampleFile[i].loadFile();
-      if (i == 11)
-      {
-        mSampleFile[i].reverse();
-      }
     }
   }
 }

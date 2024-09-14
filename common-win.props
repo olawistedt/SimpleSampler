@@ -39,7 +39,7 @@
 
     <!-- #### The Host directory ####-->
 <!-- <VST3_64_HOST_PATH Condition="'$(VST3_64_HOST_PATH)'==''">C:\Program Files\Cakewalk\Cakewalk Core\Cakewalk.exe</VST3_64_HOST_PATH> -->
-    <VST3_64_HOST_PATH Condition="'$(VST3_64_HOST_PATH)'==''">C:\Program Files\Steinberg\Cubase LE AI Elements 13\Cubase LE AI Elements 13.exe</VST3_64_HOST_PATH>
+<!--  <VST3_64_HOST_PATH Condition="'$(VST3_64_HOST_PATH)'==''">C:\Program Files\Steinberg\Cubase LE AI Elements 13\Cubase LE AI Elements 13.exe</VST3_64_HOST_PATH> -->
 <VST3_64_HOST_PATH Condition="'$(VST3_64_HOST_PATH)'==''">C:\ProgramData\Ableton\Live 12 Lite\Program\Ableton Live 12 Lite.exe</VST3_64_HOST_PATH>
 <!--     <VST3_32_PATH Condition="'$(VST3_32_PATH)'==''">$(CommonProgramFiles)\VST3</VST3_32_PATH>  -->
     
