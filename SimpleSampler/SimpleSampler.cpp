@@ -115,14 +115,16 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
     const IBitmap upBtnBitmap = pGraphics->LoadBitmap((PNGBTNUP_FN), 2, true);
     const IBitmap downBtnBitmap = pGraphics->LoadBitmap((PNGBTNDOWN_FN), 2, true);
     const IBitmap reverseBtnBitmap = pGraphics->LoadBitmap((PNGBTNREVERSE_FN), 2, true);
+    const IBitmap masterKnobBtnBitmap = pGraphics->LoadBitmap((PNGKNOBMASTER_FN), 101, true);
 
     pGraphics->SetLayoutOnResize(true);
     pGraphics->AttachCornerResizer(EUIResizerMode::Scale, false);
     pGraphics->LoadFont("Roboto-Regular", ROBOTO_FN);
     //    pGraphics->AttachPanelBackground(COLOR_DARK_GRAY);
 
-    pGraphics->AttachControl(new IVKnobControl(IRECT(900, 40, 1000, 140), kParamMasterVolume),
+    pGraphics->AttachControl(new IBKnobControl(870, 32, masterKnobBtnBitmap, kParamMasterVolume),
                              kCtrlTagMasterVolume);
+
     for (int i = 0; i < 12; i++)
     {
       pGraphics->AttachControl(new ITextControl({ 37 + static_cast<float>(i) * 80,
@@ -271,7 +273,17 @@ SimpleSampler::SerializeState(IByteChunk &chunk) const
 int
 SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 {
+
   //  return startPos;
+
+  int msgboxID = MessageBox(NULL,
+                            L"Do you want to load the preset/project for the SimpleSampler plugin?",
+                            L"SimpleSampler Plugin Error Message",
+                            MB_ICONQUESTION | MB_YESNO);
+  if (IDNO == msgboxID)
+  {
+    return startPos;
+  }
 
   TRACE
 
