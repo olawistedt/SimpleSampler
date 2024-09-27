@@ -14,6 +14,8 @@
 
 extern std::wstring gLastBrowsedFile;
 
+bool sUglyFix = false;
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // Windows specific
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -153,6 +155,7 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
                                                 IText(14, COLOR_WHITE)),
                                kCtrlTagSampleName0 + i);
     }
+    sUglyFix = true;
 
     //    WDL_String buildInfoStr;
     //    GetBuildInfoStr(buildInfoStr, __DATE__, __TIME__);
@@ -373,8 +376,11 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
     OutputDebugStringW(mess.c_str());
 #endif
 
-    static_cast<ITextControl *>(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + i))
-        ->SetStr(GetNarrowFileName(mSampleFile[i].mFileName).c_str());
+    if (sUglyFix)
+    {
+      static_cast<ITextControl *>(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + i))
+          ->SetStr(GetNarrowFileName(mSampleFile[i].mFileName).c_str());
+    }
 
     if (version >= kSimplesamplerVersion)
     {
