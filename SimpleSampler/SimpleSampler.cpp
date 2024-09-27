@@ -15,6 +15,24 @@
 extern std::wstring gLastBrowsedFile;
 
 ////////////////////////////////////////////////////////////////////////////////////////
+// Windows specific
+////////////////////////////////////////////////////////////////////////////////////////
+#ifdef _WIN32
+std::filesystem::path
+getDllPath()
+{
+  wchar_t dllPath[MAX_PATH];
+  HMODULE hModule = GetModuleHandleA("SimpleSampler.vst3");
+  if (hModule == NULL)
+  {
+    throw std::runtime_error("Failed to get module handle.");
+  }
+  GetModuleFileName(hModule, dllPath, MAX_PATH);
+  return std::filesystem::path(dllPath).parent_path();
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////
 // The browse buttons
 ////////////////////////////////////////////////////////////////////////////////////////
 class BounceBtnBrowseControl : public IBSwitchControl
@@ -276,14 +294,25 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 
   //  return startPos;
 
-  int msgboxID = MessageBox(NULL,
-                            L"Do you want to load the preset/project for the SimpleSampler plugin?",
-                            L"SimpleSampler Plugin Error Message",
-                            MB_ICONQUESTION | MB_YESNO);
-  if (IDNO == msgboxID)
+  //
+  // Ask if preset should be loaded IF a file named ask is in the plugin directory
+  //
+#ifdef _WIN32
+  std::filesystem::path dllDirectory = getDllPath();
+  std::filesystem::path filePath = dllDirectory / "ask";
+  if (std::filesystem::exists(filePath))
   {
-    return startPos;
+    int msgboxID =
+        MessageBox(NULL,
+                   L"Do you want to load the preset/project for the SimpleSampler plugin?",
+                   L"SimpleSampler Plugin Message",
+                   MB_ICONQUESTION | MB_YESNO);
+    if (IDNO == msgboxID)
+    {
+      return startPos;
+    }
   }
+#endif
 
   TRACE
 
@@ -344,6 +373,9 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
     OutputDebugStringW(mess.c_str());
 #endif
 
+    static_cast<ITextControl *>(GetUI()->GetControlWithTag(kCtrlTagSampleName0 + i))
+        ->SetStr(GetNarrowFileName(mSampleFile[i].mFileName).c_str());
+
     if (version >= kSimplesamplerVersion)
     {
       double nrOfSamples;
@@ -357,6 +389,9 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
         mSampleFile[i].mNrOfSampleChannels = nrOfChannels;
         assert(nrOfChannels == 1.0 || nrOfChannels == 2.0);
 
+        mSampleFile[i].mCurrentSample = nrOfSamples;
+        mSampleFile[i].mFrames = nrOfSamples / nrOfChannels;
+
         for (j = 0; j < nrOfSamples; j++)
         {
           double sample;
@@ -366,8 +401,6 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
       }
     }
   }
-
-  //OnParamReset(kPresetRecall);
 
   // Read the guard.
   double guard;
@@ -380,6 +413,10 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
                L"SimpleSampler Plugin Error Message",
                MB_OK | MB_ICONERROR);
   }
+
+
+  //  OnParamReset(kPresetRecall);
+  //  IPluginBase::UnserializeState(chunk, pos);)
 
   LEAVE_PARAMS_MUTEX
 
