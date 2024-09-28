@@ -7,6 +7,7 @@
 #include "SimpleSampler.h"
 #include "IPlug_include_in_plug_src.h"
 #include <filesystem>
+#include <fstream>
 
 #if IPLUG_EDITOR
 #include "IControls.h"
@@ -20,6 +21,7 @@ bool sUglyFix = false;
 // Windows specific
 ////////////////////////////////////////////////////////////////////////////////////////
 #ifdef _WIN32
+#include <shlobj.h>
 std::filesystem::path
 getDllPath()
 {
@@ -32,6 +34,51 @@ getDllPath()
   GetModuleFileName(hModule, dllPath, MAX_PATH);
   return std::filesystem::path(dllPath).parent_path();
 }
+
+std::wstring
+getSettingsFilePath()
+{
+  wchar_t programDataPath[MAX_PATH];
+  SHGetSpecialFolderPath(0, programDataPath, CSIDL_COMMON_APPDATA, false);
+
+  std::wstring directoryPath = std::wstring(programDataPath) + L"\\Witech\\SimpleSampler";
+  std::filesystem::create_directories(directoryPath);
+
+  return directoryPath + L"\\settings.json";
+}
+
+void
+WriteSettingsToProgramDataPath(double plugUIScale)
+{
+  std::wofstream file(getSettingsFilePath());
+  if (file.is_open())
+  {
+    file << L"{\n\t\"guiSize\": \"" + std::to_wstring(plugUIScale) + L"\"\n}";
+    file.close();
+  }
+}
+
+void
+ReadSettingsFromProgramDataPath(double &plugUIScale)
+{
+  std::wifstream file(getSettingsFilePath());
+  if (file.is_open())
+  {
+    std::wstring line;
+    while (std::getline(file, line))
+    {
+      if (line.find(L"guiSize") != std::wstring::npos)
+      {
+        std::wstring guiSize = line.substr(line.find(L"\"") + 1);
+        guiSize =
+            guiSize.substr(guiSize.find(':') + 3, guiSize.rfind(L"\"") - guiSize.find(':') - 3);
+        plugUIScale = std::stod(guiSize);
+      }
+    }
+    file.close();
+  }
+}
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -108,6 +155,7 @@ BounceBtnArrowControl::OnMouseUp(float x, float y, const IMouseMod &mod)
 
 SimpleSampler::SimpleSampler(const InstanceInfo &info) :
   Plugin(info, MakeConfig(kNumParams, kNumPresets)),
+  mPlugUIScale(1.0),
   mMasterVolume(85.0)
 {
   GetParam(kParamMasterVolume)->InitDouble("Master Volume", 85., 0., 100.0, 0.01, "%");
@@ -199,8 +247,15 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
                                                    kParamReverse0 + i),
                                kCtrlTagReverse0 + i);
     }
+    ReadSettingsFromProgramDataPath(mPlugUIScale);
+    pGraphics->Resize(PLUG_WIDTH, PLUG_HEIGHT, static_cast<float>(mPlugUIScale), true);
   };
 #endif
+}
+
+SimpleSampler::~SimpleSampler()
+{
+  WriteSettingsToProgramDataPath(mPlugUIScale);
 }
 
 void
@@ -216,6 +271,17 @@ SimpleSampler::OnUIOpen()
 
   IEditorDelegate::OnUIOpen();
 }
+
+void
+SimpleSampler::OnIdle()
+{
+  // Update the plugin scale.
+  if (GetUI())
+  {
+    mPlugUIScale = GetUI()->GetDrawScale();
+  }
+}
+
 
 //#if IPLUG_EDITOR
 //void SimpleSampler::OnParentWindowResize(int width, int height)
@@ -435,8 +501,11 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 void
 SimpleSampler::ChangeSampleFile(unsigned char nr, std::wstring wFileName)
 {
-  mSampleFile[nr].mFileName = wFileName;
-  mSampleFile[nr].loadFile();
+  if (wFileName != L"")
+  {
+    mSampleFile[nr].mFileName = wFileName;
+    mSampleFile[nr].loadFile();
+  }
 }
 
 void

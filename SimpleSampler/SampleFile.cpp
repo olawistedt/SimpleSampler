@@ -105,8 +105,8 @@ SampleFile::loadFile()
                            .c_str());
     if (mSize > 0)  // Let the mBuffer still be valid, could contain the previous loaded sample.
     {
-      mInLoadingFile = false;
       mFrames = mSize / mNrOfSampleChannels;
+      mInLoadingFile = false;
       return true;
     }
   }

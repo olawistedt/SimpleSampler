@@ -12,13 +12,11 @@ The sample loaded on channel 12 will be reversed.
 
 Displays the file name of the loaded sample.
 
+Plugin GUI size is saved between sessions.
+
 ## Version 1.0
 
 This was the initial release.
-
-
-
-
 
 This is an example of how to set up an iPlug2 project to build "out of source", which might be desirable to keep all your project dependencies synchronised with version control. It is also set up for "containerized development" using [VSCode](https://code.visualstudio.com/docs/devcontainers/containers) and [github codespaces](https://github.com/features/codespaces).
 

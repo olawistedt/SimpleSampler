@@ -38,6 +38,7 @@ class SimpleSampler final : public Plugin
 {
 public:
   SimpleSampler(const InstanceInfo &info);
+  virtual ~SimpleSampler();
 
 #if IPLUG_EDITOR
   //  void OnParentWindowResize(int width, int height) override;
@@ -52,6 +53,7 @@ public:
 #if IPLUG_DSP  // http://bit.ly/2S64BDd
   void ProcessMidiMsg(const IMidiMsg &msg) override;
   void OnReset() override;
+  void OnIdle() override;
   void OnParamChange(int paramIdx) override;
   void OnParamChangeUI(int paramIdx, EParamSource source = kUnknown) override;
 
@@ -62,6 +64,7 @@ protected:
 #endif
 
 private:
+  double mPlugUIScale;
   double mMasterVolume;
   void ChangeSampleFile(unsigned char nr, std::wstring fileName);
 
