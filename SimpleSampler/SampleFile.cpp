@@ -15,6 +15,17 @@ static LPFN_sf_wchar_open lpfn_sf_wchar_open;  // Function pointer
 static LPFN_sf_close lpfn_sf_close;
 static LPFN_sf_read_double lpfn_sf_read_double;
 
+#elif defined(__APPLE__)
+#include <dlfcn.h>
+
+typedef SNDFILE *(*LPFN_sf_open)(const char *, int, SF_INFO *);
+typedef int (*LPFN_sf_close)(SNDFILE *);
+typedef sf_count_t (*LPFN_sf_read_double)(SNDFILE *, double *, sf_count_t);
+
+static LPFN_sf_open lpfn_sf_open;  // Function pointer
+static LPFN_sf_close lpfn_sf_close;
+static LPFN_sf_read_double lpfn_sf_read_double;
+
 #endif
 
 SampleFile::SampleFile() :
@@ -83,6 +94,29 @@ SampleFile::LoadDllFunctions()
     exit(1);
   }
 }
+
+#elif defined(__APPLE__)
+void
+SampleFile::LoadDllFunctions()
+{
+  void *handle = dlopen("libsndfile.dylib", RTLD_LAZY);
+  if (!handle)
+  {
+    fprintf(stderr, "Error loading libsndfile.dylib: %s\n", dlerror());
+    exit(1);
+  }
+
+  lpfn_sf_open = (LPFN_sf_open)dlsym(handle, "sf_open");
+  lpfn_sf_close = (LPFN_sf_close)dlsym(handle, "sf_close");
+  lpfn_sf_read_double = (LPFN_sf_read_double)dlsym(handle, "sf_read_double");
+
+  if (!lpfn_sf_open || !lpfn_sf_close || !lpfn_sf_read_double)
+  {
+    fprintf(stderr, "Failed to load required functions from libsndfile.dylib\n");
+    dlclose(handle);
+    exit(1);
+  }
+}
 #endif
 
 // Called by GUI
@@ -91,11 +125,12 @@ SampleFile::loadFile()
 {
   mInLoadingFile = true;
   //  assert(mFileName != L"");
-
   OutputDebugStringW(std::wstring(L"Loading file '" + mFileName + L"'\n").c_str());
 
 #ifdef _WIN32
   SNDFILE *sndFile = lpfn_sf_wchar_open(mFileName.c_str(), SFM_READ, &mSfinfo);
+#elif defined(__APPLE__)
+  SNDFILE *sndFile = lpfn_sf_open(mFileName.c_str(), SFM_READ, &mSfinfo);
 #endif
 
   if (sndFile == NULL)
@@ -112,7 +147,6 @@ SampleFile::loadFile()
   }
 
   mFrames = static_cast<unsigned long>(mSfinfo.frames);
-
   mNrOfSampleChannels = mSfinfo.channels;
   mSize = mFrames * mNrOfSampleChannels;
 
@@ -126,7 +160,11 @@ SampleFile::loadFile()
 
   mBuffer = new double[mSize];
 
+#ifdef _WIN32
   lpfn_sf_read_double(sndFile, mBuffer, mSize);
+#elif defined(__APPLE__)
+  lpfn_sf_read_double(sndFile, mBuffer, mSize);
+#endif
 
   lpfn_sf_close(sndFile);
 
@@ -136,7 +174,6 @@ SampleFile::loadFile()
 
   return true;
 }
-
 void
 SampleFile::reverse()
 {
