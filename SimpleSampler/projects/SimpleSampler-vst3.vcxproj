@@ -398,6 +398,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\common-win.props" />
+    <None Include="..\..\README.md" />
     <None Include="..\config\SimpleSampler-ios.xcconfig" />
     <None Include="..\config\SimpleSampler-mac.xcconfig" />
     <None Include="..\config\SimpleSampler-web.mk" />

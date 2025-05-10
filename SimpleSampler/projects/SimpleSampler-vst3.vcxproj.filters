@@ -439,6 +439,7 @@
       <Filter>config</Filter>
     </None>
     <None Include="..\..\common-win.props" />
+    <None Include="..\..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\resources\bitmap1.bmp" />

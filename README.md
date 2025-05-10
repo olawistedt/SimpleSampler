@@ -1,6 +1,8 @@
 ![Build WAM](https://github.com/iPlug2/iPlug2OOS/workflows/Build%20WAM/badge.svg)
 
 # SIMPLESAMPLER
+SimpleSamler crashes when the libsnd.dll is not found.
+
 
 ## Version 1.1
 

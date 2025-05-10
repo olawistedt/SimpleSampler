@@ -200,7 +200,7 @@ SimpleSampler::SimpleSampler(const InstanceInfo &info) :
                                                   37 + (static_cast<float>(i) + 1) * 80,
                                                   220 },
                                                 "Empty1",
-                                                IText(14, COLOR_WHITE)),
+                                                IText(14, COLOR_BLACK)),
                                kCtrlTagSampleName0 + i);
     }
     sUglyFix = true;
@@ -532,8 +532,6 @@ SimpleSampler::ProcessMidiMsg(const IMidiMsg &msg)
 void
 SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
 {
-  const int nChans = NOutChansConnected();
-
   for (int offset = 0; offset < nFrames; ++offset)
   {
     while (!mMidiQueue.Empty())
@@ -554,35 +552,13 @@ SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
     }
 
     Stereo stereo;  // Note: Call getStereo() only one time.
-    //for (int i = 0; i < 24; i += 2)
-    //{
-    //  stereo =
-    //      mSampleFile[i / 2]
-    //          .getStereo();  // Note: Call getStereo() only one time, than use .left and .right to get the values.
-
-    //  outputs[i][offset] = stereo.left * mMasterVolume / 100.0;
-    //  outputs[i + 1][offset] = stereo.right * mMasterVolume / 100.0;
-    //}
-
 
     // Then use .left and .right to get the values.
-    for (int i = 0; i < nChans * 2; i += 2)
+    for (int i = 0; i < 24; i += 2) // Note it should allways be 24 here.
     {
-      if (nChans != 2)
-      {
-        stereo = mSampleFile[i / 2].getStereo();  // Note: Call getStereo() only one time.
-        outputs[i][offset] = stereo.left * mMasterVolume * 100.0;
-        outputs[i + 1][offset] = stereo.right * mMasterVolume * 100.0;
-      }
-      else  // Assume stereo channel 1 is the only one.
-      {
-        for (int j = 0; j < nChans * 2; j++)  // Mixdown all channels into one stereo channel.
-        {
-          stereo = mSampleFile[j / 2].getStereo();  // Note: Call getStereo() only one time.
-          outputs[0][offset] += stereo.left * mMasterVolume * 100.0;
-          outputs[1][offset] += stereo.right * mMasterVolume * 100.0;
-        }
-      }
+      stereo = mSampleFile[i / 2].getStereo();  // Note: Call getStereo() only one time.
+      outputs[i][offset] = stereo.left * mMasterVolume / 100.0;
+      outputs[i + 1][offset] = stereo.right * mMasterVolume / 100.0;
     }
   }
   mMidiQueue.Flush(nFrames);
