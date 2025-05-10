@@ -31,7 +31,7 @@ getDllPath()
   {
     throw std::runtime_error("Failed to get module handle.");
   }
-  GetModuleFileName(hModule, dllPath, MAX_PATH);
+  GetModuleFileNameW(hModule, dllPath, MAX_PATH);
   return std::filesystem::path(dllPath).parent_path();
 }
 
@@ -39,7 +39,7 @@ std::wstring
 getSettingsFilePath()
 {
   wchar_t programDataPath[MAX_PATH];
-  SHGetSpecialFolderPath(0, programDataPath, CSIDL_COMMON_APPDATA, false);
+  SHGetSpecialFolderPathW(0, programDataPath, CSIDL_COMMON_APPDATA, false);
 
   std::wstring directoryPath = std::wstring(programDataPath) + L"\\Witech\\SimpleSampler";
   std::filesystem::create_directories(directoryPath);
@@ -372,10 +372,10 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   if (std::filesystem::exists(filePath))
   {
     int msgboxID =
-        MessageBox(NULL,
-                   L"Do you want to load the preset/project for the SimpleSampler plugin?",
-                   L"SimpleSampler Plugin Message",
-                   MB_ICONQUESTION | MB_YESNO);
+        MessageBoxW(NULL,
+                    L"Do you want to load the preset/project for the SimpleSampler plugin?",
+                    L"SimpleSampler Plugin Message",
+                    MB_ICONQUESTION | MB_YESNO);
     if (IDNO == msgboxID)
     {
       return startPos;
@@ -401,11 +401,11 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
 
   if (version > kSimplesamplerVersion)
   {
-    MessageBox(NULL,
-               L"This project/preset uses a newer version of The SimpleSampler. Please upgrade to "
-               L"the latest version of the plugin.",
-               L"SimpleSampler Plugin Error Message",
-               MB_OK | MB_ICONERROR);
+    MessageBoxW(NULL,
+                L"This project/preset uses a newer version of The SimpleSampler. Please upgrade to "
+                L"the latest version of the plugin.",
+                L"SimpleSampler Plugin Error Message",
+                MB_OK | MB_ICONERROR);
     return pos;
   }
 
@@ -480,10 +480,10 @@ SimpleSampler::UnserializeState(const IByteChunk &chunk, int startPos)
   assert(guard == kGuard);
   if (guard != kGuard)
   {
-    MessageBox(NULL,
-               L"Something went wrong while loading the preset.",
-               L"SimpleSampler Plugin Error Message",
-               MB_OK | MB_ICONERROR);
+    MessageBoxW(NULL,
+                L"Something went wrong while loading the preset.",
+                L"SimpleSampler Plugin Error Message",
+                MB_OK | MB_ICONERROR);
   }
 
 
@@ -532,7 +532,7 @@ SimpleSampler::ProcessMidiMsg(const IMidiMsg &msg)
 void
 SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
 {
-  Stereo stereo;
+  const int nChans = NOutChansConnected();
 
   for (int offset = 0; offset < nFrames; ++offset)
   {
@@ -549,40 +549,40 @@ SimpleSampler::ProcessBlock(sample **inputs, sample **outputs, int nFrames)
           mSampleFile[msg.NoteNumber() - 36].mCurrentSample = 0;
           mSampleFile[msg.NoteNumber() - 36].mVelocity = static_cast<float>(msg.Velocity());
         }
-
-        //// The first holder can send MIDI.
-        //if (msg.NoteNumber() == 36)
-        //{
-        //  IMidiMsg midiMessage;
-        //  midiMessage.MakeNoteOnMsg(msg.NoteNumber(), msg.Velocity(), 0);
-        //  IPlugVST3ProcessorBase::SendMidiMsg(midiMessage);
-        //}
-        //// The first holder can send MIDI.
       }
-
-      //// The first holder can send MIDI.
-      //if (msg.NoteNumber() == 36)
-      //{
-      //  if (msg.StatusMsg() == IMidiMsg::kNoteOff)
-      //  {
-      //    IMidiMsg midiMessage;
-      //    midiMessage.MakeNoteOffMsg(msg.NoteNumber(), 0);
-      //    IPlugVST3ProcessorBase::SendMidiMsg(midiMessage);
-      //  }
-      //}
-      //// The first holder can send MIDI.
-
-
       mMidiQueue.Remove();
     }
 
-    for (int i = 0; i < 24; i += 2)
+    Stereo stereo;  // Note: Call getStereo() only one time.
+    //for (int i = 0; i < 24; i += 2)
+    //{
+    //  stereo =
+    //      mSampleFile[i / 2]
+    //          .getStereo();  // Note: Call getStereo() only one time, than use .left and .right to get the values.
+
+    //  outputs[i][offset] = stereo.left * mMasterVolume / 100.0;
+    //  outputs[i + 1][offset] = stereo.right * mMasterVolume / 100.0;
+    //}
+
+
+    // Then use .left and .right to get the values.
+    for (int i = 0; i < nChans * 2; i += 2)
     {
-      stereo =
-          mSampleFile[i / 2]
-              .getStereo();  // Note: Call getStereo() only one time, than use .left and .right to get the values.
-      outputs[i][offset] = stereo.left * mMasterVolume / 100.0;
-      outputs[i + 1][offset] = stereo.right * mMasterVolume / 100.0;
+      if (nChans != 2)
+      {
+        stereo = mSampleFile[i / 2].getStereo();  // Note: Call getStereo() only one time.
+        outputs[i][offset] = stereo.left * mMasterVolume * 100.0;
+        outputs[i + 1][offset] = stereo.right * mMasterVolume * 100.0;
+      }
+      else  // Assume stereo channel 1 is the only one.
+      {
+        for (int j = 0; j < nChans * 2; j++)  // Mixdown all channels into one stereo channel.
+        {
+          stereo = mSampleFile[j / 2].getStereo();  // Note: Call getStereo() only one time.
+          outputs[0][offset] += stereo.left * mMasterVolume * 100.0;
+          outputs[1][offset] += stereo.right * mMasterVolume * 100.0;
+        }
+      }
     }
   }
   mMidiQueue.Flush(nFrames);
